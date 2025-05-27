@@ -15,26 +15,31 @@ app.use(
     saveUninitialized: false,
     store,
     cookie: {
-      maxAge: 30000,
+      maxAge: 1000 * 60 * 60, // 1 hour,
       secure: false,
       httpOnly: true,
     },
   })
 );
 
-app.use(cors());
+app.use(cors( {
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
-
-app.use((req, res, next) => {
-  console.log(store);
-  next();
-});
 
 const authRoutes = require("./routes/authRoute");
 app.use("/auth", authRoutes);
-const gameRoutes = require("./routes/gameRoute");
-app.use("/game", gameRoutes);
 
+const gameRoutes = require("./routes/gameRoute");
+const requireAuth = (req, res, next) => {
+  if(req.session.authentificated) {
+    next();
+  } else {
+    return res.status(400).json("Not authentificated");
+  }
+};
+app.use("/game", requireAuth, gameRoutes);
 
 // Creating a http server with express
 const server = http.createServer(app);

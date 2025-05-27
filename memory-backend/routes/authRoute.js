@@ -20,17 +20,17 @@ router.get("/profile", (req, res) => {
   if (req.session.authentificated) {
     res.json({ username: req.session.username });
   } else {
-    res.status(401).json({ error: "Non authentifié" });
+    res.status(401).json({ error: "Not authentificated" });
   }
 });
 
 router.post("/logout", async (req, res) => {
     req.session.destroy(err => {
     if (err) {
-      return res.status(500).json({ error: "Erreur lors de la déconnexion" });
+      return res.status(500).json({ error: "Error while disconnecting" });
     }
     res.clearCookie('connect.sid');
-    res.status(200).json({ message: "Déconnecté avec succès" });
+    res.status(200).json({ message: "Disconnected succesfully" });
   });
 });
 
