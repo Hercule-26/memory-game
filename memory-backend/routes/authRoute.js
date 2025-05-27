@@ -1,8 +1,12 @@
 const express = require("express");
 const router = express.Router();
+const { userExist } = require("../sockets/socket");
 
 router.post("/login", async (req, res) => {
     const username = req.body.username;
+    if(userExist(username)) {
+      res.status(400).json("User already exist");
+    }
     if(username) {
         if(req.session.authentificated) {
             res.status(200).json({ username: req.session.username });

@@ -7,12 +7,10 @@
   const router = useRouter();
 
   const username = ref<string>("");
-  const loading = ref<boolean>(false);
   const error = ref<string|null>(null);
 
   async function handleLogin() {
     error.value = null;
-    loading.value = true;
     try {
       await store.login(username.value);
       router.push('/');
@@ -26,12 +24,9 @@
     <h2>Connection</h2>
     <form @submit.prevent="handleLogin">
       <input v-model="username" type="text" placeholder="Username" required/>
-      <button type="submit" :disabled="loading">
-        {{ loading ? "Connection..." : "Connect" }}
-      </button>
+      <button type="submit"> Connect </button>
     </form>
-
-    <p v-if="error" class="error">{{ error }}</p>
+    <p v-if="store.errorMessage" class="error">{{ store.errorMessage }}</p>
   </div>
 </template>
 

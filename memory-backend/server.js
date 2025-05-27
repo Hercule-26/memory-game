@@ -44,24 +44,8 @@ app.use("/game", requireAuth, gameRoutes);
 // Creating a http server with express
 const server = http.createServer(app);
 
-// const WebSocket = require("ws");
-// // Creation of a WebSocket linked to http server
-// const wss = new WebSocket.Server({ server });
-
-// wss.on("connection", (ws) => {
-//   console.log("Client connected");
-
-//   ws.on("message", (message) => {
-//     const data = JSON.parse(message);
-//     if (data.type === "createGame") {
-//       ws.send(`Game '${data.gameName}' created successfully!`);
-//     }
-//   });
-  
-//   ws.on("close", () => {
-//     console.log("Client disconnected");
-//   });
-// });
+const { initWebSocket } = require("./sockets/socket");
+initWebSocket(server);
 
 // Listen with http
 server.listen(PORT, () => {
