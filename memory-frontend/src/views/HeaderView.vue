@@ -1,9 +1,9 @@
 <script setup lang="ts">
   import { ref, onMounted } from 'vue';
-  import { counterStore } from '@/stores/counter';
+  import { sessionStore } from '@/stores/session';
   import { useRouter } from 'vue-router';
 
-  const store = counterStore();
+  const store = sessionStore();
   const router = useRouter();
 
   async function handleLogin() {

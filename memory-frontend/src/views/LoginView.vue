@@ -1,14 +1,14 @@
 <script setup lang="ts">
   import { ref, onMounted } from "vue";
-  import { counterStore } from "@/stores/counter";
+  import { sessionStore } from "@/stores/session";
   import { useRouter } from 'vue-router';
 
-  const store = counterStore();
+  const store = sessionStore();
   const router = useRouter();
 
-  const username = ref("");
-  const loading = ref(false);
-  const error = ref(null);
+  const username = ref<string>("");
+  const loading = ref<boolean>(false);
+  const error = ref<string|null>(null);
 
   async function handleLogin() {
     error.value = null;
