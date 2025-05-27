@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
+  import { onMounted } from 'vue';
   import { sessionStore } from '@/stores/session';
   import { useRouter } from 'vue-router';
 
@@ -15,8 +15,9 @@
     router.push('/login');
   }
 
-  onMounted(() => {
-    store.fetchUser();
+  onMounted(async () => {
+    await store.fetchUser();
+    router.push('/');
   });
 </script>
 
@@ -33,7 +34,7 @@
     </div>
 
     <template v-else>
-      <h3>Username : {{ store.user.username }}</h3>
+      <h3>Username : {{ store.user }}</h3>
       <button @click="handleLogout">Logout</button>
     </template>
   </header>

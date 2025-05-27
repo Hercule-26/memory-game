@@ -1,75 +1,48 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue"
+import { ref } from "vue"
+import { gameStore } from "@/stores/game";
+import { useRouter } from "vue-router";
 
-const gameName = ref("");
+const gameName = ref<string>("");
 const errorMessage = ref<string | null>(null);
+const game = gameStore();
+const router = useRouter();
 
-let socket: WebSocket | null = null;
-
-// onMounted(() => {
-//   socket = new WebSocket("ws://localhost:3000");
-
-//   socket.onopen = () => {
-//     console.log("WebSocket connected");
-//   };
-
-//   socket.onmessage = (event: MessageEvent) => {
-//     console.log("Server message:", event.data);
-//   };
-
-//   socket.onerror = (event: Event) => {
-//     console.error("WebSocket error:", event);
-//   };
-
-//   socket.onclose = () => {
-//     console.log("🔌 WebSocket closed");
-//   };
-// });
-
-// onUnmounted(() => {
-//   if (socket) {
-//     socket.close();
-//   }
-// });
-
-function createGame(): void {
+async function createGame() {
   if (gameName.value === "") {
     errorMessage.value = "The name of the game must not be blank";
   } else if (gameName.value.includes(" ")) {
     errorMessage.value = "The name of the game must not contain spaces";
   } else {
     errorMessage.value = null;
-    console.log(gameName.value);
-
-
-    // if (socket && socket.readyState === WebSocket.OPEN) {
-    //   const payload = {
-    //     type: "createGame",
-    //     gameName: gameName.value,
-    //   };
-
-    //   socket.send(JSON.stringify(payload));
-    //   console.log("Sent to server:", payload);
-    // } else {
-    //   console.error("WebSocket not connected");
-    // }
+    await game.createGame(gameName.value);
+    if(game.game) {
+      router.push('/game');
+    }
   }
 }
 </script>
 
 <template>
   <div id="create-form">
-    <h2>Create a Game :</h2>
-    <form @submit.prevent="createGame">
-      <input type="text" v-model="gameName" required />
-      <button type="submit">Create game</button>
-    </form>
-    <span v-if="errorMessage" style="color: red">{{ errorMessage }}</span>
+    <div>
+      <h2>Create a Game</h2>
+      <form @submit.prevent="createGame">
+          <label for="">Game name : </label>
+          <input type="text" v-model="gameName" required />
+        <button type="submit">Create game</button>
+      </form>
+      <span v-if="errorMessage" style="color: red">{{ errorMessage }}</span>
+      <span v-if="game.errorMessage" style="color: red">{{ game.errorMessage }}</span>
+    </div>
   </div>
 </template>
 
-<style>
+<style scoped>
 #create-form {
-  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 85vh;
 }
 </style>

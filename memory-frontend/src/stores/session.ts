@@ -1,7 +1,9 @@
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import { gameStore } from './game';
 
 export const sessionStore = defineStore('session', () => {
+  const gameSesion = gameStore();
   const user = ref(null);
 
   async function login(userName: string) {
@@ -18,7 +20,7 @@ export const sessionStore = defineStore('session', () => {
       }
 
       const data = await response.json();
-      user.value = data || null;
+      user.value = data.username || null;      
     } catch (err) {
       console.error(err);
     }
@@ -37,8 +39,8 @@ export const sessionStore = defineStore('session', () => {
       }
 
       const data = await response.json();
-      console.log(data);
       user.value = null;
+      gameSesion.game = null;
     } catch (err) {
       console.error(err);
     }
@@ -62,7 +64,10 @@ export const sessionStore = defineStore('session', () => {
       }
 
       const data = await response.json();
-      user.value = data;
+      user.value = data.username || null;
+      if(data.game) {
+        gameSesion.game = data.game;
+      }
     } catch (err) {
       console.error(err);
     }

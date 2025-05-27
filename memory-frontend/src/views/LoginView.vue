@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, onMounted } from "vue";
+  import { ref } from "vue";
   import { sessionStore } from "@/stores/session";
   import { useRouter } from 'vue-router';
 
@@ -14,22 +14,12 @@
     error.value = null;
     loading.value = true;
     try {
-      if (store.user) {
-        await store.logout();
-      }
       await store.login(username.value);
       router.push('/');
     } catch (e) {
       error.value = "Error while connection";
     }
   }
-
-  onMounted(async () => {
-    await store.fetchUser();
-    if (store.user) {
-      router.push('/');
-    }
-  });
 </script>
 <template>
   <div class="login-container">
