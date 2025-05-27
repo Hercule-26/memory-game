@@ -4,20 +4,20 @@ const games = new Map();
 
 const createGame = async (req, res) => {
   try {
-    const playerId = req.body.playerId;
+    const playerUsername = req.session.username;
     const gameId = req.body.gameId;
-    if (!playerId) {
-      return res.status(400).json("Player Id is missing");
-    } 
     if (!gameId) {
       return res.status(400).json("Game Id is missing");
     }
     if (games[gameId]) {
       return res.status(400).json(`Game with name '${gameId}' already exists`);
     }
-    const game = new Game(gameId, playerId);
+    const game = new Game(gameId, playerUsername);
     games[gameId] = game;    
-    res.status(201).json({ message: `Game '${gameId}' created` });
+    res.status(201).json({ 
+      message: `Game '${gameId}' created`,
+      game: game,
+    });
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Error while creating the game" });
