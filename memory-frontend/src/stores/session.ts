@@ -5,7 +5,7 @@ import { gameStore } from './game';
 export const sessionStore = defineStore('session', () => {
   const gameSesion = gameStore();
   const user = ref(null);
-
+  const errorMessage = ref<string>("");
   async function login(userName: string) {
     try {
       const response = await fetch("http://localhost:3000/auth/login", {
@@ -14,12 +14,13 @@ export const sessionStore = defineStore('session', () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: userName }),
       });
+      
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error("Error while login");
+        errorMessage.value = data;
       }
 
-      const data = await response.json();
       user.value = data.username || null;      
     } catch (err) {
       console.error(err);
@@ -73,5 +74,5 @@ export const sessionStore = defineStore('session', () => {
     }
   }
 
-  return { user, login, logout, fetchUser };
+  return { user, errorMessage, login, logout, fetchUser };
 });

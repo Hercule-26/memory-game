@@ -6,7 +6,6 @@ export const gameStore = defineStore('game', () => {
   const errorMessage = ref<string>("");
 
   async function createGame(gameName: string) {
-    console.log(gameName);
     try {
       const response = await fetch("http://localhost:3000/game/create", {
         method: "POST",
