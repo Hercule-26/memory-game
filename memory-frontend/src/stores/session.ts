@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
-export const counterStore = defineStore('counter', () => {
+export const sessionStore = defineStore('session', () => {
   const user = ref(null);
 
   async function login(userName: string) {

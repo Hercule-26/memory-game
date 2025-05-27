@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import CreateGameView from '@/views/CreateGameView.vue'
 import LoginView from '@/views/LoginView.vue'
-import { counterStore } from '@/stores/counter'
+import { sessionStore } from '@/stores/session'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,7 +28,7 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-  const store = counterStore()
+  const store = sessionStore()
   if (to.meta.requiresAuth && !store.user) {
     next({ name: 'login' });
   }
