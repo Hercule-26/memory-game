@@ -1,26 +1,28 @@
-      <script setup lang="ts">
-      import { ref } from "vue";
-      import { counterStore } from "@/stores/counter";
+<script setup lang="ts">
+  import { ref } from "vue";
+  import { counterStore } from "@/stores/counter";
+  import { useRouter } from 'vue-router';
 
-      const store = counterStore();
+  const store = counterStore();
+  const router = useRouter();
 
-      const username = ref("");
-      const loading = ref(false);
-      const error = ref(null);
+  const username = ref("");
+  const loading = ref(false);
+  const error = ref(null);
 
-      async function handleLogin() {
-        error.value = null;
-        loading.value = true;
-        try {
-          await store.login(username.value);
-
-        } catch (e) {
-          error.value = "Erreur lors de la connexion";
-        } finally {
-          loading.value = false;
-        }
-      }
-      </script>
+  async function handleLogin() {
+    error.value = null;
+    loading.value = true;
+    try {
+      await store.login(username.value);
+      router.push('/')
+    } catch (e) {
+      error.value = "Erreur lors de la connexion";
+    } finally {
+      loading.value = false;
+    }
+  }
+</script>
 <template>
   <div class="login-container">
     <h2>Connection</h2>

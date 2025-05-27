@@ -12,6 +12,7 @@
 
   async function handleLogout() {
     await store.logout();
+    router.push('/login');
   }
 
   onMounted(() => {
@@ -24,7 +25,6 @@
     <div id="menu">
       <nav>
         <RouterLink to="/">Home</RouterLink>
-        <RouterLink v-if="store.user" to="/game/create">Create game</RouterLink>
       </nav>
     </div>
 
@@ -33,7 +33,7 @@
     </div>
 
     <template v-else>
-      <h3>Welcome, {{ store.user.username }}</h3>
+      <h3>Username : {{ store.user.username }}</h3>
       <button @click="handleLogout">Logout</button>
     </template>
   </header>
