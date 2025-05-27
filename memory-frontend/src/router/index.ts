@@ -30,10 +30,9 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const store = counterStore()
   if (to.meta.requiresAuth && !store.user) {
-    next({ name: 'login' })
-  } else {
-    next()
+    next({ name: 'login' });
   }
+  return next();
 })
 
 export default router

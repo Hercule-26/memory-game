@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref } from "vue";
+  import { ref, onMounted } from "vue";
   import { counterStore } from "@/stores/counter";
   import { useRouter } from 'vue-router';
 
@@ -14,14 +14,22 @@
     error.value = null;
     loading.value = true;
     try {
+      if (store.user) {
+        await store.logout();
+      }
       await store.login(username.value);
-      router.push('/')
+      router.push('/');
     } catch (e) {
-      error.value = "Erreur lors de la connexion";
-    } finally {
-      loading.value = false;
+      error.value = "Error while connection";
     }
   }
+
+  onMounted(async () => {
+    await store.fetchUser();
+    if (store.user) {
+      router.push('/');
+    }
+  });
 </script>
 <template>
   <div class="login-container">
@@ -29,7 +37,7 @@
     <form @submit.prevent="handleLogin">
       <input v-model="username" type="text" placeholder="Username" required/>
       <button type="submit" :disabled="loading">
-        {{ loading ? "Connexion..." : "Connect" }}
+        {{ loading ? "Connection..." : "Connect" }}
       </button>
     </form>
 
@@ -37,24 +45,23 @@
   </div>
 </template>
 
-
 <style scoped>
-.login-container {
-  max-width: 300px;
-  margin: 2rem auto;
-  text-align: center;
-}
-input {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-}
-button {
-  width: 100%;
-  padding: 0.5rem;
-}
-.error {
-  color: red;
-  margin-top: 1rem;
-}
+  .login-container {
+    max-width: 300px;
+    margin: 2rem auto;
+    text-align: center;
+  }
+  input {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  button {
+    width: 100%;
+    padding: 0.5rem;
+  }
+  .error {
+    color: red;
+    margin-top: 1rem;
+  }
 </style>
