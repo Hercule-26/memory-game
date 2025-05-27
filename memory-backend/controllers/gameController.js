@@ -13,8 +13,9 @@ const createGame = async (req, res) => {
       return res.status(400).json(`Game with name '${gameId}' already exists`);
     }
     const game = new Game(gameId, playerUsername);
-    games[gameId] = game;    
-    res.status(201).json({ 
+    games[gameId] = game;
+    req.session.game = game; 
+    res.status(201).json({
       message: `Game '${gameId}' created`,
       game: game,
     });

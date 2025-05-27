@@ -18,7 +18,14 @@ router.post("/login", async (req, res) => {
 
 router.get("/profile", (req, res) => {
   if (req.session.authentificated) {
-    res.json({ username: req.session.username });
+    if(req.session.game) {
+      res.json({ 
+        username: req.session.username,
+        game: req.session.game,
+      });  
+    } else {
+      res.json({ username: req.session.username });
+    }
   } else {
     res.status(401).json({ error: "Not authentificated" });
   }
