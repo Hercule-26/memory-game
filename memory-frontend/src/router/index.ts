@@ -51,7 +51,7 @@ router.beforeEach(async (to, from, next) => {
   } 
   
   if(to.name === 'home' || to.name === 'createGame' || to.name === 'joinGame') {
-    if(game.game) {
+    if(game.gameId) {
       router.push('/game');
     }
   }

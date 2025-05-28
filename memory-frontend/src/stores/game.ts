@@ -1,8 +1,9 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 
 export const gameStore = defineStore('game', () => {
   const game = ref(null);
+  const gameId = ref(null);
   const errorMessage = ref<string>("");
 
   async function createGame(gameName: string) {
@@ -13,7 +14,7 @@ export const gameStore = defineStore('game', () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ gameId: gameName }),
+        body: JSON.stringify({ gameName: gameName }),
       });
 
       const data = await response.json();
@@ -23,20 +24,20 @@ export const gameStore = defineStore('game', () => {
         throw new Error(errorMessage.value);
       }
       game.value = data.game;
+      gameId.value = data.gameId;
     } catch (err: any) {
       console.error("Error while creating game: ", err.message);
     }
   }
   
-  async function joinGame(gameName: string): Promise<any> {
+  async function joinGame(gameId: string): Promise<any> {
     try {
-      const response = await fetch("http://localhost:3000/game/join", {
-        method: "POST",
-        credentials: "include", // pour que les cookies de session soient envoyés
+      const response = await fetch(`http://localhost:3000/game/join/${gameId}`, {
+        method: "GET",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ gameId: gameName }),
       });
 
       const data = await response.json();
@@ -44,7 +45,6 @@ export const gameStore = defineStore('game', () => {
       if (!response.ok) {
         errorMessage.value = data;
       } else {
-        console.log(game.value);
         game.value = data.game;
       }
     } catch (err: any) {
@@ -52,5 +52,29 @@ export const gameStore = defineStore('game', () => {
     }
   }
 
-  return { game, errorMessage, createGame, joinGame };
+  async function fetchGameDetails(id: string) {
+    try {
+      const response = await fetch(`http://localhost:3000/game/${id}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        game.value = data;
+      } else {
+        throw new Error(data);
+      }
+    } catch (err: any) {
+      console.error("Fetch game error:", err.message);
+    }
+  }
+
+  watch(gameId, (newId) => {
+    if (newId) {
+      fetchGameDetails(newId);
+    }
+  });
+
+  return { game, gameId, errorMessage, createGame, joinGame };
 });

@@ -73,6 +73,7 @@
 <template>
     <div id="content">
         <button @click="send">Send message</button>
+        <div v-if="gameSession.gameId"> Game id : {{ gameSession.gameId }}</div>
         <div v-if="gameSession.game && gameSession.game.players.length < 2" class="waiting-message">
             Waiting for player...
         </div>
