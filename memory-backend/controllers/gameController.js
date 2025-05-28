@@ -75,6 +75,15 @@ const joinGame = async (req, res) => {
   });
 };
 
+const quitGame = async (req, res) => {
+  const gameID = req.params.gameId;
+  const playerId = req.params.playerId;
+  console.log(gameID);
+  console.log(playerId);
+  res.status(200).json("Player quit the game");
+  
+};
+
 const gameExist = (gameName) => {  
   return games.get(gameName) !== undefined;
 }
@@ -84,4 +93,5 @@ module.exports = {
     joinGame,
     getGame,
     gameExist,
+    quitGame,
 };

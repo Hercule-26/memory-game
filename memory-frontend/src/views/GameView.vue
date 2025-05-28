@@ -26,7 +26,7 @@
             const payload = {
                 type: "registerSocket",
                 username: session.user,
-                gameName: gameSession.game.partyName
+                gameId: gameSession.gameId,
             };
             socket!.send(JSON.stringify(payload));
             console.log("WebSocket connected");
@@ -50,7 +50,7 @@
         };
     });
 
-    onUnmounted(() => {
+    onUnmounted(async () => {
         if (socket) {
             socket.close();
         }

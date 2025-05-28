@@ -4,7 +4,7 @@ import { gameStore } from './game';
 
 export const sessionStore = defineStore('session', () => {
   const gameSesion = gameStore();
-  const user = ref(null);
+  const user = ref<string|null>(null);
   const errorMessage = ref<string>("");
   async function login(userName: string) {
     try {
@@ -38,11 +38,12 @@ export const sessionStore = defineStore('session', () => {
       if (!response.ok) {
         throw new Error("Error while logout");
       }
-
+      
       const data = await response.json();
-      user.value = null;
+      await gameSesion.quitGame(user.value);
       gameSesion.game = null;
       gameSesion.gameId = null;
+      user.value = null;
     } catch (err) {
       console.error(err);
     }
