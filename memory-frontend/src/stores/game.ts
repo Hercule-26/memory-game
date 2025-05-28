@@ -52,6 +52,29 @@ export const gameStore = defineStore('game', () => {
     }
   }
 
+  async function quitGame(player: any) {
+    try {
+      const response = await fetch(`http://localhost:3000/game/exit/${gameId.value}/${player}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        errorMessage.value = data;
+      } else {
+        game.value = null;
+        gameId.value = null;
+      }
+    } catch (err: any) {
+      console.error("Join game error:", err.message);
+    }
+  };
+
   async function fetchGameDetails(id: string) {
     try {
       const response = await fetch(`http://localhost:3000/game/${id}`, {
@@ -76,5 +99,5 @@ export const gameStore = defineStore('game', () => {
     }
   });
 
-  return { game, gameId, errorMessage, createGame, joinGame };
+  return { game, gameId, errorMessage, createGame, joinGame, quitGame };
 });
