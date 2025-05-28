@@ -12,8 +12,6 @@ const router = useRouter();
 async function joinGame() {
   if (gameName.value === "") {
     game.errorMessage = "The name of the game must not be blank";
-  } else if (gameName.value.includes(" ")) {
-    game.errorMessage = "The name of the game must not contain spaces";
   } else {
     errorMessage.value = null;
     await game.joinGame(gameName.value);
@@ -30,7 +28,7 @@ async function joinGame() {
       <h2>Join a Game</h2>
       <form @submit.prevent="joinGame">
         <label>Game name: </label>
-        <input type="text" v-model="gameName" required/>
+        <input type="number" v-model="gameName" required/>
         <button type="submit">Join game</button>
       </form>
       <span v-if="game.errorMessage" style="color: red">{{ game.errorMessage }}</span>

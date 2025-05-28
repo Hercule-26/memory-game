@@ -42,6 +42,7 @@ export const sessionStore = defineStore('session', () => {
       const data = await response.json();
       user.value = null;
       gameSesion.game = null;
+      gameSesion.gameId = null;
     } catch (err) {
       console.error(err);
     }
@@ -66,9 +67,9 @@ export const sessionStore = defineStore('session', () => {
 
       const data = await response.json();
       user.value = data.username || null;
-      if(data.game) {
-        gameSesion.game = data.game;
-      }
+      if(data.gameId) {
+        gameSesion.gameId = data.gameId;
+      }      
     } catch (err) {
       console.error(err);
     }

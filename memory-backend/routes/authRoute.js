@@ -22,10 +22,10 @@ router.post("/login", async (req, res) => {
 
 router.get("/profile", (req, res) => {
   if (req.session.authentificated) {
-    if(req.session.game) {
+    if(req.session.gameId) {
       res.json({ 
         username: req.session.username,
-        game: req.session.game,
+        gameId: req.session.gameId,
       });  
     } else {
       res.json({ username: req.session.username });

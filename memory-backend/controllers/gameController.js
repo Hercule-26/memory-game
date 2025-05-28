@@ -3,20 +3,27 @@ const Game = require("../model/Game");
 const games = new Map();
 const { getSocketByUsername } = require("../sockets/socket");
 
+function generateUniqueGameId() {
+  let id;
+  do {
+    id = Math.floor(100000 + Math.random() * 900000).toString();
+  } while (games.has(id));
+  return id;
+}
+
 const createGame = async (req, res) => {
   try {
     const playerUsername = req.session.username;
-    const gameId = req.body.gameId;
-    if (!gameId) {
-      return res.status(400).json("Game Id is missing");
+    const gameId = generateUniqueGameId();
+    const gameName = req.body.gameName;
+    if (!gameName) {
+      return res.status(400).json("Game Name is missing");
     }
-    if (games.has(gameId)) {
-      return res.status(400).json(`Game with name '${gameId}' already exists`);
-    }
-    const game = new Game(gameId, playerUsername);
+    const game = new Game(gameName, playerUsername);
     games.set(gameId, game);
-    req.session.game = game; 
+    req.session.gameId = gameId;
     res.status(201).json({
+      gameId: gameId,
       game: game,
     });
   } catch (err) {
@@ -25,20 +32,32 @@ const createGame = async (req, res) => {
   }
 };
 
+const getGame = async (req, res) => {
+  const gameId = req.params.id;
+
+  if (!games.has(gameId)) {
+    return res.status(404).json({ error: "Game not found" });
+  }
+  const game = games.get(gameId);
+  res.status(200).json(game);
+};
+
 const joinGame = async (req, res) => {
-  const gameId = req.body.gameId;
+  const gameId = req.params.id;
+  console.log(gameId);
+  
   if (!gameId) {
     return res.status(400).json("Game Id is missing");
   }
   if(!gameExist(gameId)) {
-    return res.status(400).json("Game not found");
+    return res.status(404).json("Game not found");
   }
   const game = games.get(gameId);
   if(game.gameIsFull()) {
     return res.status(400).json("Game is full");
   }
   game.addPlayer(req.session.username);
-  req.session.game = game;
+  req.session.gameId = gameId;
   const player1 = game.players[0];
   const player2 = game.players[1];
   const ws = getSocketByUsername(player1.name);
@@ -63,5 +82,6 @@ const gameExist = (gameName) => {
 module.exports = {
     createGame, 
     joinGame,
+    getGame,
     gameExist,
 };
