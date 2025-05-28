@@ -6,6 +6,7 @@ import { useRouter } from "vue-router";
 const gameName = ref<string>("");
 const errorMessage = ref<string | null>(null);
 const game = gameStore();
+game.errorMessage = "";
 const router = useRouter();
 
 async function createGame() {
@@ -28,8 +29,8 @@ async function createGame() {
     <div>
       <h2>Create a Game</h2>
       <form @submit.prevent="createGame">
-          <label for="">Game name : </label>
-          <input type="text" v-model="gameName" required />
+        <label for="">Game name : </label>
+        <input type="text" v-model="gameName" required />
         <button type="submit">Create game</button>
       </form>
       <span v-if="errorMessage" style="color: red">{{ errorMessage }}</span>

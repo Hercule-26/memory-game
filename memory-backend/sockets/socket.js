@@ -17,7 +17,6 @@ function initWebSocket(server) {
           console.log(data);
           ws.send('Test from server');
         }
-
       } catch (err) {
         console.error("Error handling message:", err);
       }

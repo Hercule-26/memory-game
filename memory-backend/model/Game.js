@@ -34,6 +34,10 @@ class Game {
     this.players.push(new Player(playerName));
   }
 
+  gameIsFull() {
+    return this.players.length == 2;
+  }
+  
   switchPlayer() {
     this.currentPlayerIndex = (this.currentPlayerIndex + 1) % 2;
   }

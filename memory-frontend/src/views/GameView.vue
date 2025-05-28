@@ -33,7 +33,12 @@
         };
 
         socket.onmessage = (event: MessageEvent) => {
-            console.log("Server :", event.data);
+            const data = JSON.parse(event.data);
+            if(data.type === "playerJoined") {
+                const player = data.player;
+                console.log(player);
+                gameSession.game.players.push(player);
+            }
         };
 
         socket.onerror = (event: Event) => {
@@ -55,8 +60,7 @@
         if (socket && socket.readyState === WebSocket.OPEN) {
           const payload = {
             type: "message",
-            username: session.user,
-            gameName: gameSession.game.partyName
+            gameName: gameSession.game.partyName,
           };
           socket.send(JSON.stringify(payload));
           console.log("Sent to server:", payload);

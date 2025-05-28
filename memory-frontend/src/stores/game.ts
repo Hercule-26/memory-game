@@ -27,5 +27,30 @@ export const gameStore = defineStore('game', () => {
       console.error("Error while creating game: ", err.message);
     }
   }
-  return { game, errorMessage, createGame };
+  
+  async function joinGame(gameName: string): Promise<any> {
+    try {
+      const response = await fetch("http://localhost:3000/game/join", {
+        method: "POST",
+        credentials: "include", // pour que les cookies de session soient envoyés
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ gameId: gameName }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        errorMessage.value = data;
+      } else {
+        console.log(game.value);
+        game.value = data.game;
+      }
+    } catch (err: any) {
+      console.error("Join game error:", err.message);
+    }
+  }
+
+  return { game, errorMessage, createGame, joinGame };
 });
