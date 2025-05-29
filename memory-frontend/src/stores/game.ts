@@ -96,9 +96,9 @@ export const gameStore = defineStore('game', () => {
     }
   }
 
-  watch(gameId, (newId) => {
+  watch(gameId, async (newId) => {
     if (newId) {
-      fetchGameDetails(newId);
+      await fetchGameDetails(newId);
     }
   });
 

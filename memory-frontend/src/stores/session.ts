@@ -39,8 +39,6 @@ export const sessionStore = defineStore('session', () => {
       if (!response.ok) {
         throw new Error("Error while logout");
       }
-
-      const data = await response.json();
       user.value = null;
     } catch (err) {
       console.error(err);
