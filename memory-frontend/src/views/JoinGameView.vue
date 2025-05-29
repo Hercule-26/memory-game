@@ -3,18 +3,18 @@ import { ref } from "vue";
 import { gameStore } from "@/stores/game";
 import { useRouter } from "vue-router";
 
-const gameName = ref<string>("");
+const gameId = ref<number | null>(null);
 const errorMessage = ref<string | null>(null);
 const game = gameStore();
 game.errorMessage = "";
 const router = useRouter();
 
 async function joinGame() {
-  if (gameName.value === "") {
-    game.errorMessage = "The name of the game must not be blank";
+  if (!gameId.value) {
+    game.errorMessage = "The game id must not be blank";
   } else {
     errorMessage.value = null;
-    await game.joinGame(gameName.value);
+    await game.joinGame(gameId.value);
     if (game.game) {
       router.push("/game");
     }
@@ -28,7 +28,7 @@ async function joinGame() {
       <h2>Join a Game</h2>
       <form @submit.prevent="joinGame">
         <label>Game name: </label>
-        <input type="number" v-model="gameName" required/>
+        <input type="number" v-model="gameId" required/>
         <button type="submit">Join game</button>
       </form>
       <span v-if="game.errorMessage" style="color: red">{{ game.errorMessage }}</span>

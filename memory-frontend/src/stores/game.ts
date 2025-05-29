@@ -78,7 +78,7 @@ export const gameStore = defineStore('game', () => {
     }
   };
 
-  async function fetchGameDetails(id: string) {
+  async function fetchGameDetails(id: number) {
     try {
       const response = await fetch(`http://localhost:3000/game/${id}`, {
         method: "GET",
