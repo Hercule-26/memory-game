@@ -99,8 +99,10 @@ const playerDisconnect = (gameId, playerId) => {
       }
     }
     game.deletePlayer(playerId);
+    console.log(`Number of player left in the game : ${players.length}`);
     if(players.length == 0) {
       games.delete(gameId);
+      console.log(`Game with id ${gameId} has been deleted`);
     }
   }
 }
