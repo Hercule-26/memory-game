@@ -8,10 +8,20 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors( {
-  origin: 'http://localhost:5173',
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : [`http://localhost:${PORT}`];
+console.log(allowedOrigins);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS policy does not allow origin: ${origin}`));
+    }
+  },
   credentials: true,
-}));
+};
+app.use(cors(corsOptions));
 
 app.use(
   session({
@@ -46,10 +56,11 @@ app.use("/game", requireAuth, gameRoutes);
 const server = http.createServer(app);
 
 const { initWebSocket } = require("./sockets/socket");
+const { log } = require("console");
 initWebSocket(server);
 
 // Listen with http
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
 
