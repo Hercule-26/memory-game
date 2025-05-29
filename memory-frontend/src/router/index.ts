@@ -58,6 +58,10 @@ router.beforeEach(async (to, from) => {
     return { name: 'home' };
   }
 
+  if(to.name === 'game' && !game.gameId) {
+    return { name: 'home' };
+  }
+
   if (to.name === 'home' || to.name === 'createGame' || to.name === 'joinGame') {
     if (game.gameId) {
       return { name: 'game' };

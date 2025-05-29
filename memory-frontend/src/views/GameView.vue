@@ -1,23 +1,20 @@
 <script setup lang="ts">
   import { gameStore } from '@/stores/game';
-  import { sessionStore } from '@/stores/session';
-  import { onMounted, onUnmounted, ref } from 'vue';
+  import GameComponent from '@/components/GameComponent.vue';
   import { useRouter } from 'vue-router';
+  import { onMounted, onUnmounted, ref } from 'vue';
+  import { sessionStore } from '@/stores/session';
 
   const gameSession: any = gameStore();
-  const session = sessionStore();
-  const router = useRouter();
-  const showAlert = ref<boolean>(false);
-  let socket: WebSocket | null = null;
+  const userSession = sessionStore();
+  const showAlert = ref(false);
 
+  let socket: WebSocket | null = null;
+  const router = useRouter();
 
   onMounted(async () => {
-    if(!session.user) {
-        await session.fetchUser();
-    }
-
-    if(!gameSession.game) {
-        router.push('/');
+    if(!userSession.user) {
+      await userSession.fetchUser();
     }
 
     socket = new WebSocket("ws://localhost:3000");
@@ -25,7 +22,7 @@
     socket.onopen = () => {
       const payload = {
         type: "registerSocket",
-        username: session.user,
+        username: userSession.user,
         gameId: gameSession.gameId,
       };
       socket!.send(JSON.stringify(payload));
@@ -41,7 +38,7 @@
         showAlert.value = true;
         setTimeout(async () => {
           showAlert.value = false;
-          await gameSession.quitGame(session.user);
+          await gameSession.quitGame(userSession.user);
           router.push('/');
         }, 5000); // 5 sec
       }
@@ -62,31 +59,18 @@
     }
   });
 
-  function send(): void {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      const payload = {
-        type: "message",
-        gameName: gameSession.game.partyName,
-      };
-      socket.send(JSON.stringify(payload));
-      console.log("Sent to server:", payload);
-    } else {
-      console.error("WebSocket not connected");
-    }
-  }
 </script>
 
 <template>
   <div id="content">
       <h1 v-if="showAlert">Player disconnected</h1>
-      <button @click="send">Send message</button>
-      <template v-if="gameSession.game && gameSession.game.players.length < 2">
+      <div v-if="gameSession.game && gameSession.game.players.length < 2">
         <div v-if="gameSession.gameId"> Game id : {{ gameSession.gameId }}</div>
-        <div v-if="gameSession.game" class="waiting-message">
+        <div class="waiting-message">
             Waiting for player...
         </div>
-        <div v-else> {{ gameSession.game }} </div>
-      </template>
+      </div>
+      <GameComponent v-else/>
   </div>
 </template>
 
