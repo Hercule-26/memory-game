@@ -42,20 +42,29 @@ const router = createRouter({
   ],
 })
 
-
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, from) => {
   const store = sessionStore();
   const game = gameStore();
+
+  if (!store.user) {
+    await store.fetchUser();
+  }
+
   if (to.meta.requiresAuth && !store.user) {
-    return next({ name: 'login' });
-  } 
-  
-  if(to.name === 'home' || to.name === 'createGame' || to.name === 'joinGame') {
-    if(game.gameId) {
-      return router.push({ name: 'game' });
+    return { name: 'login' };
+  }
+
+  if (to.name === 'login' && store.user) {
+    return { name: 'home' };
+  }
+
+  if (to.name === 'home' || to.name === 'createGame' || to.name === 'joinGame') {
+    if (game.gameId) {
+      return { name: 'game' };
     }
   }
-  next();
-})
+  return true;
+});
+
 
 export default router
