@@ -29,6 +29,22 @@ class Game {
   getCurrentPlayer() {
     return this.players[this.currentPlayerIndex];
   }
+  
+  getPlayers() {
+    return this.players;
+  }
+
+  deletePlayer(playerId) {
+    const index = this.players.findIndex(player => player.name === playerId);
+    
+    if (index !== -1) {
+      this.players.splice(index, 1);
+
+      if (this.currentPlayerIndex >= this.players.length) {
+        this.currentPlayerIndex = 0;
+      }
+    }
+  }
 
   addPlayer(playerName) {
     this.players.push(new Player(playerName));

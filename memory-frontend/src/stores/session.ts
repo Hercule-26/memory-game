@@ -14,14 +14,14 @@ export const sessionStore = defineStore('session', () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: userName }),
       });
-      
+
       const data = await response.json();
 
       if (!response.ok) {
         errorMessage.value = data;
       }
 
-      user.value = data.username || null;      
+      user.value = data.username || null;
     } catch (err) {
       console.error(err);
     }
@@ -29,6 +29,7 @@ export const sessionStore = defineStore('session', () => {
 
   async function logout() {
     try {
+      await gameSesion.quitGame(user.value);
       const response = await fetch("http://localhost:3000/auth/logout", {
         method: "POST",
         credentials: "include",
@@ -38,11 +39,8 @@ export const sessionStore = defineStore('session', () => {
       if (!response.ok) {
         throw new Error("Error while logout");
       }
-      
+
       const data = await response.json();
-      await gameSesion.quitGame(user.value);
-      gameSesion.game = null;
-      gameSesion.gameId = null;
       user.value = null;
     } catch (err) {
       console.error(err);
@@ -70,7 +68,7 @@ export const sessionStore = defineStore('session', () => {
       user.value = data.username || null;
       if(data.gameId) {
         gameSesion.gameId = data.gameId;
-      }      
+      }
     } catch (err) {
       console.error(err);
     }

@@ -1,7 +1,7 @@
+const { getSocketByUserId } = require("../sockets/socket");
 
 const Game = require("../model/Game");
 const games = new Map();
-const { getSocketByUsername } = require("../sockets/socket");
 
 function generateUniqueGameId() {
   let id;
@@ -27,7 +27,7 @@ const createGame = async (req, res) => {
       game: game,
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ error: "Error while creating the game" });
   }
 };
@@ -44,8 +44,7 @@ const getGame = async (req, res) => {
 
 const joinGame = async (req, res) => {
   const gameId = req.params.id;
-  console.log(gameId);
-  
+
   if (!gameId) {
     return res.status(400).json("Game Id is missing");
   }
@@ -56,15 +55,19 @@ const joinGame = async (req, res) => {
   if(game.gameIsFull()) {
     return res.status(400).json("Game is full");
   }
+
   game.addPlayer(req.session.username);
   req.session.gameId = gameId;
+  
   const player1 = game.players[0];
   const player2 = game.players[1];
-  const ws = getSocketByUsername(player1.name);
+  const ws = getSocketByUserId(player1.name);
+  
   if(!ws) {
     console.error("Error with socker (socket not found)");
     return res.status(500).json("Error with socker");
   }
+  
   const payload = {
     type: "playerJoined",
     player: player2
@@ -76,16 +79,34 @@ const joinGame = async (req, res) => {
 };
 
 const quitGame = async (req, res) => {
-  const gameID = req.params.gameId;
+  delete req.session.gameId;
+  const gameId = req.params.gameId;
   const playerId = req.params.playerId;
-  console.log(gameID);
-  console.log(playerId);
+  playerDisconnect(gameId, playerId);
   res.status(200).json("Player quit the game");
-  
 };
 
-const gameExist = (gameName) => {  
-  return games.get(gameName) !== undefined;
+const playerDisconnect = (gameId, playerId) => {
+  if(games.has(gameId)) {
+    const game = games.get(gameId);
+    const players = game.getPlayers();
+
+    const otherPlayer = players.find((p) => p.name !== playerId);
+    if (otherPlayer) {
+      const playerSocket = getSocketByUserId(otherPlayer.name);
+      if (playerSocket) {
+        playerSocket.send(JSON.stringify({type: "playerDisconnected"}));
+      }
+    }
+    game.deletePlayer(playerId);
+    if(players.length == 0) {
+      games.delete(gameId);
+    }
+  }
+}
+
+const gameExist = (gameId) => {  
+  return games.has(gameId);
 }
 
 module.exports = {
@@ -94,4 +115,5 @@ module.exports = {
     getGame,
     gameExist,
     quitGame,
+    playerDisconnect,
 };
