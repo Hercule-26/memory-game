@@ -47,12 +47,12 @@ router.beforeEach(async (to, from, next) => {
   const store = sessionStore();
   const game = gameStore();
   if (to.meta.requiresAuth && !store.user) {
-    next({ name: 'login' });
+    return next({ name: 'login' });
   } 
   
   if(to.name === 'home' || to.name === 'createGame' || to.name === 'joinGame') {
     if(game.gameId) {
-      router.push('/game');
+      return router.push({ name: 'game' });
     }
   }
   next();
