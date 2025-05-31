@@ -87,6 +87,7 @@ const quitGame = async (req, res) => {
 };
 
 const playerDisconnect = (gameId, playerId) => {
+  gameId = gameId.toString();
   if(games.has(gameId)) {
     const game = games.get(gameId);
     const players = game.getPlayers();
@@ -99,10 +100,8 @@ const playerDisconnect = (gameId, playerId) => {
       }
     }
     game.deletePlayer(playerId);
-    console.log(`Number of player left in the game : ${players.length}`);
     if(players.length == 0) {
       games.delete(gameId);
-      console.log(`Game with id ${gameId} has been deleted`);
     }
   }
 }
