@@ -8,9 +8,6 @@ const gameSession: any = gameStore();
 
 <template>
   <div class="game-container" v-if="gameSession.game">
-    <div>{{ gameSession.game }}</div>
-    <br>
-    
     <h1>🎮 Party : {{ gameSession.game.partyName }}</h1>
 
     <div class="players">

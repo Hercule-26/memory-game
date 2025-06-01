@@ -3,8 +3,10 @@ const Card = require('./Card');
 
 class Game {
   constructor(partyName, playerName) {
-    this.nbCardRevealed = 0;
     this.partyName = partyName;
+    this.gameIsOver = false;
+    this.nbCardRevealed = 0;
+    this.revealedCards = [];
     this.players = [new Player(playerName)];
     this.currentPlayerIndex = 0;
     this.board = this.generateBoard();
@@ -65,6 +67,12 @@ class Game {
     const card = this.board[x][y];
     card.reveal();
     this.nbCardRevealed++;
+    this.revealedCards.push({ 
+      x: x, 
+      y: y, 
+      card: card
+    });
+
     return {
       rowIndex : x,
       colIndex: y,
@@ -73,32 +81,45 @@ class Game {
     }
   }
 
-  checkMatch(x1, y1, x2, y2) {
-    const card1 = this.board[x1][y1];
-    const card2 = this.board[x2][y2];
+  checkMatch() {
+    if(this.revealedCards.length < 2) return { errorMessage: "Need to have 2 revealed cards to see if they match each other" };
+    
+    const card1 = this.revealedCards[0];
+    const card2 = this.revealedCards[1];
 
-    if (card1.isMatched || card2.isMatched || !card1.isRevealed || !card2.isRevealed) {
-      return false;
+    if (card1.card.isMatched || card2.card.isMatched || !card1.card.isRevealed || !card2.card.isRevealed) {
+      return { errorMessage: "Cards are already matched or are not revealed yet" };
     }
 
-    if (card1.value === card2.value) {
-      card1.match();
-      card2.match();
+    if (card1.card.value === card2.card.value) {
+      card1.card.match();
+      card2.card.match();
       this.getCurrentPlayer().incrementScore();
       this.matchedPairs++;
-      this.nbCardRevealed = 0;
-      return true;
     } else {
-      card1.hide();
-      card2.hide();
+      card1.card.hide();
+      card2.card.hide();
       this.switchPlayer();
-      this.nbCardRevealed = 0;
-      return false;
+    }
+    
+    this.nbCardRevealed = 0;
+    this.revealedCards = [];
+    this.isGameOver();
+    
+    return {
+      card1: card1,
+      card2: card2,
+      currentPlayerIndex: this.currentPlayerIndex,
+      players: this.players,
+      totalPairs: this.totalPairs,
+      matchedPairs: this.matchedPairs,
+      gameIsOver: this.gameIsOver,
+      nbCardRevealed: this.nbCardRevealed,
     }
   }
 
   isGameOver() {
-    return this.matchedPairs === this.totalPairs;
+    this.gameIsOver = this.matchedPairs === this.totalPairs;
   }
 }
 
