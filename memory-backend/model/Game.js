@@ -3,6 +3,7 @@ const Card = require('./Card');
 
 class Game {
   constructor(partyName, playerName) {
+    this.nbCardRevealed = 0;
     this.partyName = partyName;
     this.players = [new Player(playerName)];
     this.currentPlayerIndex = 0;
@@ -59,15 +60,24 @@ class Game {
   }
 
   revealCard(x, y) {
+    if(this.nbCardRevealed == 2) return { errorMessage: "2 cards are already revealed" }
+
     const card = this.board[x][y];
     card.reveal();
+    this.nbCardRevealed++;
+    return {
+      rowIndex : x,
+      colIndex: y,
+      card: card,
+      nbCardRevealed: this.nbCardRevealed,
+    }
   }
 
   checkMatch(x1, y1, x2, y2) {
     const card1 = this.board[x1][y1];
     const card2 = this.board[x2][y2];
 
-    if (card1.isMatched || card2.isMatched) {
+    if (card1.isMatched || card2.isMatched || !card1.isRevealed || !card2.isRevealed) {
       return false;
     }
 
@@ -76,11 +86,13 @@ class Game {
       card2.match();
       this.getCurrentPlayer().incrementScore();
       this.matchedPairs++;
+      this.nbCardRevealed = 0;
       return true;
     } else {
       card1.hide();
       card2.hide();
       this.switchPlayer();
+      this.nbCardRevealed = 0;
       return false;
     }
   }
