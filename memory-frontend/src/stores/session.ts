@@ -6,9 +6,11 @@ export const sessionStore = defineStore('session', () => {
   const gameSesion = gameStore();
   const user = ref<string|null>(null);
   const errorMessage = ref<string>("");
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
   async function login(userName: string) {
     try {
-      const response = await fetch("http://localhost:3000/auth/login", {
+      const response = await fetch(`${apiUrl}/auth/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -30,7 +32,7 @@ export const sessionStore = defineStore('session', () => {
   async function logout() {
     try {
       await gameSesion.quitGame(user.value);
-      const response = await fetch("http://localhost:3000/auth/logout", {
+      const response = await fetch(`${apiUrl}/auth/logout`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -47,7 +49,7 @@ export const sessionStore = defineStore('session', () => {
 
   async function fetchUser() {
     try {
-      const response = await fetch("http://localhost:3000/auth/profile", {
+      const response = await fetch(`${apiUrl}/auth/profile`, {
         method: "GET",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
