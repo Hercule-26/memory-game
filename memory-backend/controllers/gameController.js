@@ -110,7 +110,7 @@ const revealCard = async (req, res) => {
   const username = req.session.username;
   const rowIndex = req.params.rowIndex;
   const colIndex = req.params.colIndex;
-
+  
   if(!gameId) {
     return res.status(400).json("Missing gameId in your session. Make sure you are in a game");
   }
@@ -135,11 +135,35 @@ const revealCard = async (req, res) => {
       return res.status(400).json(payload.errorMessage);
     }
     payload.type = "cardRevealed";
-    notifyOtherPlayer(game.getPlayers(), req.session.username, payload);
+    notifyOtherPlayer(game.getPlayers(), username, payload);
     return res.status(200).json(payload);
   } catch (err) {
     console.error("Error while revealing card:", err);
     return res.status(500).json("Internal server error.");
+  }
+}
+
+const checkCardsMatch = async (req, res) => {
+  const gameId = req.session.gameId;
+  const username = req.session.username;
+  console.log(`gameId : ${gameId}, game existe : ${gameExist(gameId)}`);
+
+  if(!gameId) {
+    return res.status(400).json("Missing gameId in your session. Make sure you are in a game");
+  }
+  
+  if(!username) {
+    return res.status(400).json("Missing username in your session. Make sure you are connected");
+  }
+
+  const game = games.get(gameId);
+  const payload = game.checkMatch();
+  if(payload.errorMessage) {
+    return res.status(400).json(payload.errorMessage);
+  } else {
+    payload.type = "checkCardsMatch"
+    notifyOtherPlayer(game.getPlayers(), username, payload);
+    return res.status(200).json(payload);
   }
 }
 
@@ -161,4 +185,5 @@ module.exports = {
     quitGame,
     playerDisconnect,
     revealCard,
+    checkCardsMatch
 };

@@ -82,29 +82,69 @@ export const gameStore = defineStore('game', () => {
   }
 
   async function revealCard(rowIndex: number, colIndex: number) {
-      if (!gameId.value) {
-        console.log("GameId is null");
-        return;
-      }
-      try {
-        const response = await fetch(`http://localhost:3000/game/reveal/${rowIndex}/${colIndex}`, {
-          method: "GET",
-          credentials: "include"
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          const { rowIndex, colIndex, card, nbCardRevealed } = data;
-          game.value.board[rowIndex][colIndex] = card;
-          game.value.nbCardRevealed = nbCardRevealed;         
-        } else {
-          throw new Error(data);
-        }
-      } catch (err: any) {
-        errorMessage.value = err.message;
-      }
+    if (!gameId.value) {
+      console.log("GameId is missing");
+      return;
     }
+    try {
+      const response = await fetch(`http://localhost:3000/game/reveal/${rowIndex}/${colIndex}`, {
+        method: "GET",
+        credentials: "include"
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const { rowIndex, colIndex, card, nbCardRevealed } = data;
+        game.value.board[rowIndex][colIndex] = card;
+        game.value.nbCardRevealed = nbCardRevealed;         
+      } else {
+        throw new Error(data);
+      }
+    } catch (err: any) {
+      errorMessage.value = err.message;
+    }
+  }
+
+  async function checkCardsMatch() {
+    if (!gameId.value) {
+      console.log("GameId is missing");
+      return;
+    }
+    try {
+      const response = await fetch(`http://localhost:3000/game/match`, {
+        method: "GET",
+        credentials: "include"
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const { card1, card2, currentPlayerIndex, matchedPairs, gameIsOver, players, nbCardRevealed } = data;
+
+        if (card1 && card2 && game.value.board) {
+          const x1 = parseInt(card1.x);
+          const y1 = parseInt(card1.y);
+          const x2 = parseInt(card2.x);
+          const y2 = parseInt(card2.y);
+
+          game.value.board[x1][y1] = card1.card;
+          game.value.board[x2][y2] = card2.card;
+        }
+
+        game.value.currentPlayerIndex = currentPlayerIndex;
+        game.value.matchedPairs = matchedPairs;
+        game.value.gameIsOver = gameIsOver;
+        game.value.players = players;
+        game.value.nbCardRevealed = nbCardRevealed;
+      } else {
+        throw new Error(data);
+      }
+    } catch (err: any) {
+      errorMessage.value = err.message;
+    }
+  }
+
   async function fetchGameDetails(id: number) {
     try {
       const response = await fetch(`http://localhost:3000/game/${id}`, {
@@ -130,5 +170,5 @@ export const gameStore = defineStore('game', () => {
     }
   });
 
-  return { game, gameId, playerIndex, errorMessage, createGame, joinGame, quitGame, revealCard };
+  return { game, gameId, playerIndex, errorMessage, createGame, joinGame, quitGame, revealCard, checkCardsMatch };
 });
