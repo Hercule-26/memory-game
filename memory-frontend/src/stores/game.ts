@@ -8,10 +8,11 @@ export const gameStore = defineStore('game', () => {
   const gameId = ref<number | null>(null);
   const errorMessage = ref<string>("");
   let playerIndex = ref<number | null>(null);
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   async function createGame(gameName: string) {
     try {
-      const response = await fetch("http://localhost:3000/game/create", {
+      const response = await fetch(`${apiUrl}/game/create`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -35,7 +36,7 @@ export const gameStore = defineStore('game', () => {
 
   async function joinGame(gameIdJoin: number): Promise<any> {
     try {
-      const response = await fetch(`http://localhost:3000/game/join/${gameIdJoin}`, {
+      const response = await fetch(`${apiUrl}/game/join/${gameIdJoin}`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -59,7 +60,7 @@ export const gameStore = defineStore('game', () => {
   async function quitGame(player: any) {
     if(gameId) {
       try {
-        const response = await fetch(`http://localhost:3000/game/exit/${gameId.value}/${player}`, {
+        const response = await fetch(`${apiUrl}/game/exit/${gameId.value}/${player}`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -87,7 +88,7 @@ export const gameStore = defineStore('game', () => {
       return;
     }
     try {
-      const response = await fetch(`http://localhost:3000/game/reveal/${rowIndex}/${colIndex}`, {
+      const response = await fetch(`${apiUrl}/game/reveal/${rowIndex}/${colIndex}`, {
         method: "GET",
         credentials: "include"
       });
@@ -112,7 +113,7 @@ export const gameStore = defineStore('game', () => {
       return;
     }
     try {
-      const response = await fetch(`http://localhost:3000/game/match`, {
+      const response = await fetch(`${apiUrl}/game/match`, {
         method: "GET",
         credentials: "include"
       });
@@ -147,7 +148,7 @@ export const gameStore = defineStore('game', () => {
 
   async function fetchGameDetails(id: number) {
     try {
-      const response = await fetch(`http://localhost:3000/game/${id}`, {
+      const response = await fetch(`${apiUrl}/game/${id}`, {
         method: "GET",
         credentials: "include",
       });

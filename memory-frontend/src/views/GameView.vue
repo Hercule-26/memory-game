@@ -87,7 +87,7 @@
 
   async function handleCardClick(rowIndex: number, colIndex: number) {
     const card = gameSession.game.board[rowIndex][colIndex];
-    if((!card.isRevealed || !card.isMatched) && gameSession.game.nbCardRevealed < 2 && gameSession.game.currentPlayerIndex == gameSession.playerIndex) {
+    if((!card.isRevealed || !card.isMatched) && !gameSession.game.gameIsOver && gameSession.game.nbCardRevealed < 2 && gameSession.game.currentPlayerIndex == gameSession.playerIndex) {
       console.log(`Row : ${rowIndex} | Col : ${colIndex}`);
       await gameSession.revealCard(rowIndex, colIndex);
       if(gameSession.game.nbCardRevealed == 2) {
