@@ -27,7 +27,7 @@ async function joinGame() {
     <div>
       <h2>Join a Game</h2>
       <form @submit.prevent="joinGame">
-        <label>Game name: </label>
+        <label>Game id: </label>
         <input type="number" v-model="gameId" required/>
         <button type="submit">Join game</button>
       </form>

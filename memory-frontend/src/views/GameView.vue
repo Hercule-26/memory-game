@@ -6,9 +6,9 @@
   import { sessionStore } from '@/stores/session';
 
   const gameSession: any = gameStore();
-  const userSession = sessionStore();
+  const userSession: any = sessionStore();
   const showAlert = ref(false);
-
+  const nbCardRevealed = ref(0);
   let socket: WebSocket | null = null;
   const router = useRouter();
 
@@ -41,6 +41,10 @@
           await gameSession.quitGame(userSession.user);
           router.push('/');
         }, 5000); // 5 sec
+      } else if(data.type === "cardRevealed") {
+        const { rowIndex, colIndex, card, nbCardRevealed } = data;
+        gameSession.game.board[rowIndex][colIndex] = card;
+        gameSession.game.nbCardRevealed = nbCardRevealed;
       }
     };
 
@@ -59,6 +63,18 @@
     }
   });
 
+  async function handleCardClick(rowIndex: number, colIndex: number) {
+    const card = gameSession.game.board[rowIndex][colIndex];
+    if((!card.isRevealed || !card.isMatched) && gameSession.game.nbCardRevealed < 2 && gameSession.game.currentPlayerIndex === gameSession.playerIndex) {
+      console.log(`Row : ${rowIndex} | Col : ${colIndex}`);
+      await gameSession.revealCard(rowIndex, colIndex);
+      if(gameSession.game.nbCardRevealed == 2) {
+        console.log("2 card revealed");
+        nbCardRevealed.value = 0;
+        // await gameSession.checkCardMatched();
+      }
+    }
+  }
 </script>
 
 <template>
@@ -70,7 +86,7 @@
             Waiting for player...
         </div>
       </div>
-      <GameComponent v-else/>
+      <GameComponent v-else @card-clic="handleCardClick"/>
   </div>
 </template>
 

@@ -92,14 +92,9 @@ const playerDisconnect = (gameId, playerId) => {
     const game = games.get(gameId);
     const players = game.getPlayers();
 
-    const otherPlayer = players.find((p) => p.name !== playerId);
-    if (otherPlayer) {
-      const playerSocket = getSocketByUserId(otherPlayer.name);
-      if (playerSocket) {
-        playerSocket.send(JSON.stringify({type: "playerDisconnected"}));
-      }
-    }
     game.deletePlayer(playerId);
+    notifyOtherPlayer(players, playerId, {type: "playerDisconnected"});
+    
     if(players.length == 0) {
       games.delete(gameId);
     }
@@ -110,6 +105,54 @@ const gameExist = (gameId) => {
   return games.has(gameId);
 }
 
+const revealCard = async (req, res) => {
+  const gameId = req.session.gameId;
+  const username = req.session.username;
+  const rowIndex = req.params.rowIndex;
+  const colIndex = req.params.colIndex;
+
+  if(!gameId) {
+    return res.status(400).json("Missing gameId in your session. Make sure you are in a game");
+  }
+  
+  if(!username) {
+    return res.status(400).json("Missing username in your session. Make sure you are connected");
+  }
+
+  if(!gameExist(gameId)) {
+    return res.status(404).json("Game does not exist.");
+  }
+
+  if (isNaN(rowIndex) || isNaN(colIndex)) {
+    return res.status(400).json("rowIndex and colIndex must be valid integers.");
+  }
+  
+  const game = games.get(gameId);
+
+  try {
+    const payload = game.revealCard(rowIndex, colIndex);
+    if(payload.errorMessage) {
+      return res.status(400).json(payload.errorMessage);
+    }
+    payload.type = "cardRevealed";
+    notifyOtherPlayer(game.getPlayers(), req.session.username, payload);
+    return res.status(200).json(payload);
+  } catch (err) {
+    console.error("Error while revealing card:", err);
+    return res.status(500).json("Internal server error.");
+  }
+}
+
+function notifyOtherPlayer(players, currentPlayer, payload) {
+  const otherPlayer = players.find((p) => p.name !== currentPlayer);
+  if (otherPlayer) {
+    const playerSocket = getSocketByUserId(otherPlayer.name);
+    if (playerSocket) {
+      playerSocket.send(JSON.stringify(payload));
+    }
+  }
+}
+
 module.exports = {
     createGame, 
     joinGame,
@@ -117,4 +160,5 @@ module.exports = {
     gameExist,
     quitGame,
     playerDisconnect,
+    revealCard,
 };

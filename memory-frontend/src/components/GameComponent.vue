@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import { gameStore } from '@/stores/game';
 
+const emits = defineEmits(['cardClic']);
 const gameSession: any = gameStore();
+
 </script>
 
 <template>
-  <div class="game-container">
+  <div class="game-container" v-if="gameSession.game">
+    <div>{{ gameSession.game }}</div>
+    <br>
+    
     <h1>🎮 Party : {{ gameSession.game.partyName }}</h1>
 
     <div class="players">
       <h2>👥 Players</h2>
       <ul>
-        <li
-          v-for="(player, index) in gameSession.game.players"
-          :key="index"
-          :class="{ current: index === gameSession.game.currentPlayerIndex }"
-        >
+        <li v-for="(player, index) in gameSession.game.players" :key="index" :class="{ current: index === gameSession.game.currentPlayerIndex }">
           {{ player.name }} — {{ player.score }} pts
           <span v-if="index === gameSession.game.currentPlayerIndex"> 🔥</span>
         </li>
@@ -24,16 +25,8 @@ const gameSession: any = gameStore();
 
     <h2>🧠 Board</h2>
     <div class="board">
-      <div
-        v-for="(row, rowIndex) in gameSession.game.board"
-        :key="rowIndex"
-        class="row"
-      >
-        <div
-          v-for="(card, colIndex) in row"
-          :key="colIndex"
-          class="card"
-        >
+      <div v-for="(row, rowIndex) in gameSession.game.board" :key="rowIndex" class="row">
+        <div v-for="(card, colIndex) in row" :key="colIndex" @click="emits('cardClic', rowIndex, colIndex)" class="card">
           <span v-if="card.isMatched || card.isRevealed">{{ card.value }}</span>
           <span v-else>❓</span>
         </div>
@@ -41,6 +34,7 @@ const gameSession: any = gameStore();
     </div>
 
     <p>✅ Pairs found : {{ gameSession.game.matchedPairs }} / {{ gameSession.game.totalPairs }}</p>
+
   </div>
 </template>
 
