@@ -33,7 +33,7 @@
       if(data.type === "playerJoined") {
         const player = data.player;
         gameSession.game.players.push(player);
-      
+
       } else if (data.type === "playerDisconnected") {
         showAlert.value = true;
         setTimeout(async () => {
@@ -41,12 +41,12 @@
           await gameSession.quitGame(userSession.user);
           router.push('/');
         }, 5000); // 5 sec
-      
+
       } else if(data.type === "cardRevealed") {
         const { rowIndex, colIndex, card, nbCardRevealed } = data;
         gameSession.game.board[rowIndex][colIndex] = card;
         gameSession.game.nbCardRevealed = nbCardRevealed;
-      
+
       }else if (data.type === "checkCardsMatch") {
         const { card1, card2, currentPlayerIndex, matchedPairs, gameIsOver, players, nbCardRevealed } = data;
 
@@ -101,25 +101,29 @@
 </script>
 
 <template>
-  <div id="content">
-      <h1 v-if="showAlert">Player disconnected</h1>
-      <h1 v-if="gameSession.gam && gameSession.game.gameIsOver">Game Is Over !</h1>
-      <div v-if="gameSession.game && gameSession.game.players.length < 2">
-        <div v-if="gameSession.gameId"> Game id : {{ gameSession.gameId }}</div>
-        <div class="waiting-message">
-            Waiting for player...
-        </div>
+  <div class="flex flex-col justify-center items-center h-80 px-4">
+    <h1 v-if="showAlert" class="text-xl font-semibold text-pink-600 mb-4 drop-shadow-md">
+      ⚠️ Player disconnected
+    </h1>
+
+    <h1 v-if="gameSession.game && gameSession.game.gameIsOver" class="text-xl font-bold text-violet-900 mb-4 drop-shadow-md">
+      🎉 Game Is Over!
+    </h1>
+
+    <div
+      v-if="gameSession.game && gameSession.game.players.length < 2"
+      class="text-center bg-white bg-opacity-90 p-6 rounded-lg shadow-lg max-w-md w-full"
+    >
+      <div v-if="gameSession.gameId" class="mb-2 text-purple-800 font-semibold">
+        Game ID: {{ gameSession.gameId }}
       </div>
-      <GameComponent v-else @card-clic="handleCardClick"/>
+      <div class="text-lg font-semibold text-purple-900">
+        Waiting for player to join...
+      </div>
+    </div>
+
+    <GameComponent v-else @card-clic="handleCardClick" />
   </div>
 </template>
 
-<style scoped>
-  #content {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 85vh;
-  }
-</style>
+
