@@ -57,15 +57,3 @@ initWebSocket(server);
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
-
-// const { connectToDB } = require("./repository/db");
-// connectToDB()
-//   .then(() => {
-//     app.listen(PORT, () => {
-//       console.log(`Server running at http://localhost:${PORT}`);
-//     });
-//   })
-//   .catch(err => {
-//     console.error("Server not started due to DB connection failure.");
-//     process.exit(1);
-//   });

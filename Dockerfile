@@ -1,32 +1,27 @@
-FROM node:20 AS frontend-build
-
-WORKDIR /app/memory-frontend
-
-COPY memory-frontend/package*.json ./
-
-RUN npm install
-
-COPY memory-frontend/ .
-
-RUN npm run build
-
-FROM node:20
-
+FROM node:20-alpine
 WORKDIR /app
 
-COPY memory-backend/ ./memory-backend/
+# BACKEND
+COPY memory-backend ./memory-backend
 WORKDIR /app/memory-backend
 RUN npm install
 
-COPY --from=frontend-build /app/memory-frontend/dist ./memory-frontend/dist
-COPY --from=frontend-build /app/memory-frontend/package*.json ./memory-frontend/
+# 🎨 FRONTEND
+WORKDIR /app
+COPY memory-frontend ./memory-frontend
 
-RUN npm install -g concurrently
+WORKDIR /app/memory-frontend
+RUN npm install && npm run build
+
+RUN mkdir -p /app/memory-backend/public && \
+    cp -r dist/* /app/memory-backend/public/
+
+# START SERVER
+WORKDIR /app/memory-backend
+
+ENV PORT=3000
 
 EXPOSE 3000
-EXPOSE 4173
+EXPOSE 5173
 
-WORKDIR /app
-CMD concurrently \
-  "cd memory-backend && node server.js" \
-  "cd memory-frontend && npm run preview -- --port 4173 --host 0.0.0.0"
+CMD ["node", "server.js"]
