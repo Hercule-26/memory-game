@@ -91,6 +91,10 @@ class Game {
       return { errorMessage: "Cards are already matched or are not revealed yet" };
     }
 
+    if (card1.x === card2.x && card1.y === card2.y) {
+      return { errorMessage: "Same card clicked twice" }
+    }
+
     if (card1.card.value === card2.card.value) {
       card1.card.match();
       card2.card.match();
