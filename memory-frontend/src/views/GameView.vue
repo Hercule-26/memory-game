@@ -40,7 +40,7 @@
           showAlert.value = false;
           await gameSession.quitGame(userSession.user);
           router.push('/');
-        }, 5000); // 5 sec
+        }, 5000);
 
       } else if(data.type === "cardRevealed") {
         const { rowIndex, colIndex, card, nbCardRevealed } = data;
@@ -89,13 +89,11 @@
     const card = gameSession.game.board[rowIndex][colIndex];
     if(!card.isRevealed && !card.isMatched && !gameSession.game.gameIsOver && gameSession.game.nbCardRevealed < 2 && gameSession.game.currentPlayerIndex == gameSession.playerIndex
     ) {
-      console.log(`Row : ${rowIndex} | Col : ${colIndex}`);
       await gameSession.revealCard(rowIndex, colIndex);
       if(gameSession.game.nbCardRevealed == 2) {
-        console.log("2 card revealed");
         setTimeout(async () => {
           await gameSession.checkCardsMatch();
-        }, 3000); // 3sec
+        }, 3000);
       }
     }
   }
@@ -122,8 +120,9 @@
         Waiting for player to join...
       </div>
     </div>
-
-    <GameComponent v-else @card-clic="handleCardClick" />
+    <template v-else>
+      <GameComponent v-if="gameSession.game" @card-clic="handleCardClick" />
+    </template>
   </div>
 </template>
 
