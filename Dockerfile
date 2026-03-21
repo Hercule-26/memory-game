@@ -1,15 +1,25 @@
+FROM node:20 AS frontend-build
+
+WORKDIR /app/memory-frontend
+
+COPY memory-frontend/package*.json ./
+
+RUN npm install
+
+COPY memory-frontend/ .
+
+RUN npm run build
+
 FROM node:20
 
 WORKDIR /app
 
-COPY . .
-
+COPY memory-backend/ ./memory-backend/
 WORKDIR /app/memory-backend
 RUN npm install
 
-WORKDIR /app/memory-frontend
-RUN npm install
-RUN npm run build
+COPY --from=frontend-build /app/memory-frontend/dist ./memory-frontend/dist
+COPY --from=frontend-build /app/memory-frontend/package*.json ./memory-frontend/
 
 RUN npm install -g concurrently
 
