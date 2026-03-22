@@ -8,12 +8,11 @@ const http = require("http");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const serverHostUrl = process.env.SERVER_HOST || 'localhost'
+const serverHost = process.env.SERVER_HOST || 'localhost'
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true)
     const requestHost = new URL(origin).hostname
-    const serverHost = serverHostUrl
     console.log("requestHost ", requestHost, "serverHost :", serverHost)
     if (requestHost === serverHost) {
       callback(null, true)
