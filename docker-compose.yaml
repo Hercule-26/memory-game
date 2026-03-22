@@ -3,21 +3,21 @@ services:
     build: ./memory-backend
     container_name: memory-backend
     ports:
-      - "3000"
+      - "${BACKEND_PORT}:3000"
     environment:
       - NODE_ENV=production
       - SESSION_SECRET=YourSessionSecretHere
-      - SERVER_HOST=localhost
+      - SERVER_HOST=${SERVER_HOST}
     restart: unless-stopped
 
   frontend:
     build:
       context: ./memory-frontend
       args:
-        - VITE_API_URL=http://localhost:3000
-        - VITE_SOCKET_URL=ws://localhost:3000
+        - VITE_API_URL=${BACKEND_API_URL}
+        - VITE_SOCKET_URL=$BACKEND_SOCKET_URL}
     ports:
-      - "80"
+      - "${FRONTEND_PORT}:80"
     environment:
       - NODE_ENV=production
     depends_on:
