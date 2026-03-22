@@ -1,0 +1,25 @@
+services:
+  backend:
+    build: ./memory-backend
+    container_name: memory-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - SESSION_SECRET=YourSessionSecretHere
+      - ALLOWED_ORIGIN=http://localhost:8080
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./memory-frontend
+      args:
+        - VITE_API_URL=http://localhost:3000
+        - VITE_SOCKET_URL=ws://localhost:3000
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    restart: unless-stopped
