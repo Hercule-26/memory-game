@@ -9,16 +9,9 @@ const http = require("http");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const allowedOrigin = process.env.ALLOWED_ORIGIN
-  ? process.env.ALLOWED_ORIGIN
-  : "http://localhost:5173";
-console.log("Allowed origin :", allowedOrigin);
-
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true) // Postman / curl
-    
-    // Accepte toutes les requêtes venant du même host (peu importe le port)
+    if (!origin) return callback(null, true)
     const requestHost = new URL(origin).hostname
     const serverHost = process.env.SERVER_HOST || 'localhost'
     
