@@ -15,7 +15,7 @@ services:
       context: ./memory-frontend
       args:
         - VITE_API_URL=${BACKEND_API_URL}
-        - VITE_SOCKET_URL=$BACKEND_SOCKET_URL}
+        - VITE_SOCKET_URL=${BACKEND_SOCKET_URL}
     ports:
       - "${FRONTEND_PORT}:80"
     environment:
