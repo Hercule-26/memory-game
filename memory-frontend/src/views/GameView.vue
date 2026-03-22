@@ -15,7 +15,8 @@
     if(!userSession.user) {
       await userSession.fetchUser();
     }
-    const socketUrl = import.meta.env.VITE_SOCKER_URL || "ws://localhost:3000";
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || "ws://localhost:3000";
+    console.log("SocketUrl :", socketUrl)
     socket = new WebSocket(socketUrl);
 
     socket.onopen = () => {
