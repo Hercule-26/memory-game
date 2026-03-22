@@ -1,30 +1,40 @@
+// server.js
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
-const store = new session.MemoryStore();
+const crypto = require("crypto");
 const http = require("http");
 
-require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : [`http://localhost:5173`];
-console.log(allowedOrigins);
+const allowedOrigin = process.env.ALLOWED_ORIGIN
+  ? process.env.ALLOWED_ORIGIN
+  : "http://localhost:5173";
+console.log("Allowed origin :", allowedOrigin);
 
 const corsOptions = {
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigin === origin) callback(null, true);
+    else callback(new Error("Not allowed by CORS"));
+  },
   credentials: true,
 };
+
 app.use(cors(corsOptions));
+
+const store = new session.MemoryStore();
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "SessionSecret",
+    secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex"),
     resave: false,
     saveUninitialized: false,
     store,
     cookie: {
-      maxAge: 1000 * 60 * 5, // 5 min,
+      maxAge: 1000 * 60 * 5, // 5 minutes
       secure: false,
       httpOnly: true,
     },
@@ -38,22 +48,19 @@ app.use("/auth", authRoutes);
 
 const gameRoutes = require("./routes/gameRoute");
 const requireAuth = (req, res, next) => {
-  if(req.session.authentificated) {
-    next();
-  } else {
-    return res.status(400).json("Not authentificated");
-  }
+  if (req.session.authentificated) next();
+  else return res.status(401).json({ error: "Not authenticated" });
 };
 app.use("/game", requireAuth, gameRoutes);
 
-// Creating a http server with express
-const server = http.createServer(app);
-
 const { initWebSocket } = require("./sockets/socket");
-const { log } = require("console");
+const server = http.createServer(app);
 initWebSocket(server);
 
-// Listen with http
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+app.get("/", (req, res) => {
+  res.send("API is running");
+});
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
 });
