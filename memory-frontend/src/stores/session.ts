@@ -7,7 +7,8 @@ export const sessionStore = defineStore('session', () => {
   const user = ref<string|null>(null);
   const errorMessage = ref<string>("");
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
+  console.log("APIURL :", apiUrl);
+  
   async function login(userName: string) {
     try {
       const response = await fetch(`${apiUrl}/auth/login`, {
