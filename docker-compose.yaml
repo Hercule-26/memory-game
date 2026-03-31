@@ -10,6 +10,12 @@ services:
       - SERVER_HOST=${SERVER_HOST}
     networks:
       - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PROJECT_TAG}-backend.rule=Host(`${DOMAIN_URL}`)"
+      - "traefik.http.routers..${PROJECT_TAG}-backend.entrypoints=web"
+      - "traefik.http.services.${PROJECT_TAG}-backend.loadbalancer.server.port=3000"
+      - "traefik.docker.network=traefik-network"
     restart: unless-stopped
 
   frontend:
@@ -26,6 +32,12 @@ services:
       - backend
     networks:
       - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PROJECT_TAG}-frontend.rule=Host(`${DOMAIN_URL}`)"
+      - "traefik.http.routers.${PROJECT_TAG}-frontend.entrypoints=web"
+      - "traefik.http.services.${PROJECT_TAG}-frontend.loadbalancer.server.port=80"
+      - "traefik.docker.network=traefik-network"
     restart: unless-stopped
 
 network:
