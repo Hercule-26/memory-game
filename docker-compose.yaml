@@ -34,9 +34,9 @@ services:
       - traefik-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.${DOMAIN_URL}.rule=Host(`${DOMAIN_URL}`)"
-      - "traefik.http.routers.${DOMAIN_URL}.entrypoints=web"
-      - "traefik.http.services.${DOMAIN_URL}.loadbalancer.server.port=80"
+      - "traefik.http.routers.${PROJECT_TAG}-frontend.rule=Host(`${DOMAIN_URL}`)"
+      - "traefik.http.routers.${PROJECT_TAG}-frontend.entrypoints=web"
+      - "traefik.http.services.${PROJECT_TAG}-frontend.loadbalancer.server.port=80"
       - "traefik.docker.network=traefik-network"
     restart: unless-stopped
 
