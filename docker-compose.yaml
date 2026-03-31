@@ -40,6 +40,6 @@ services:
       - "traefik.docker.network=traefik-network"
     restart: unless-stopped
 
-network:
+networks:
   traefik-network:
     external: true
