@@ -8,6 +8,8 @@ services:
       - NODE_ENV=production
       - SESSION_SECRET=YourSessionSecretHere
       - SERVER_HOST=${SERVER_HOST}
+    networks:
+      - traefik-network
     restart: unless-stopped
 
   frontend:
@@ -22,4 +24,10 @@ services:
       - NODE_ENV=production
     depends_on:
       - backend
+    networks:
+      - traefik-network
     restart: unless-stopped
+
+network:
+  traefik-network:
+    external: true
