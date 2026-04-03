@@ -13,7 +13,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.${PROJECT_TAG}-backend.rule=Host(`${BACKEND_URL}`)"
-      - "traefik.http.routers.${PROJECT_TAG}-backend.entrypoints=web"
+      - "traefik.http.routers.${PROJECT_TAG}-backend.entrypoints=websecure"
+      - "traefik.http.routers.${PROJECT_TAG}-backend.tls=true"
       - "traefik.http.services.${PROJECT_TAG}-backend.loadbalancer.server.port=3000"
       - "traefik.docker.network=traefik-network"
     restart: unless-stopped
