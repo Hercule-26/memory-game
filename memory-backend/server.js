@@ -9,19 +9,22 @@ const http = require("http");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const serverHost = process.env.SERVER_HOST || 'localhost'
+
+const allowedOrigins = [
+  serverHost,
+];
+
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true)
-    const requestHost = new URL(origin).hostname
-    console.log("requestHost ", requestHost, "serverHost :", serverHost)
-    if (requestHost === serverHost) {
-      callback(null, true)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'))
+      callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
-}
+};
 
 app.use(cors(corsOptions));
 
