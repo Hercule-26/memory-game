@@ -8,18 +8,20 @@ const http = require("http");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const serverHost = process.env.SERVER_HOST || 'localhost'
 
-const allowedOrigins = [
-  serverHost,
-];
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : ["localhost"];
+console.log("Incoming origin:", origin);
 
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log("Blocked by CORS:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
@@ -27,6 +29,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 const store = new session.MemoryStore();
 
@@ -37,9 +40,10 @@ app.use(
     saveUninitialized: false,
     store,
     cookie: {
-      maxAge: 1000 * 60 * 5, // 5 minutes
-      secure: false,
+      maxAge: 1000 * 60 * 5,
+      secure: true,
       httpOnly: true,
+      sameSite: "none",
     },
   })
 );
