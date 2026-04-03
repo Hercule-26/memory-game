@@ -52,7 +52,7 @@ You can run the project using Docker (recommended) or by setting up the frontend
 
 -   Node.js (v18 or later)
 -   npm
--   Docker and Docker Compose
+-   Docker and Docker Compose (optional)
 
 ### Option 1: Running with Docker (Recommended)
 
