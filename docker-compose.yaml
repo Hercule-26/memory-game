@@ -7,7 +7,7 @@ services:
     environment:
       - NODE_ENV=production
       - SESSION_SECRET=${SERVER_SECRET}
-      - ALLOWED_ORIGINS=${DOMAIN_URL}
+      - ALLOWED_ORIGINS=`https://${DOMAIN_URL}`
     networks:
       - traefik-network
     labels:
