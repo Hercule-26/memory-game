@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const http = require("http");
 
 const app = express();
+app.set("trust proxy", 1);
 const PORT = process.env.PORT || 3000;
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
