@@ -10,9 +10,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
+  ? [ ...process.env.ALLOWED_ORIGINS.split(","), "localhost" ]
   : ["localhost"];
-console.log("Incoming origin:", origin);
+console.log("Allowed Origins:", allowedOrigins);
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -29,7 +29,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 
 const store = new session.MemoryStore();
 
@@ -61,6 +60,7 @@ const requireAuth = (req, res, next) => {
 app.use("/game", requireAuth, gameRoutes);
 
 const { initWebSocket } = require("./sockets/socket");
+const { log } = require("console");
 const server = http.createServer(app);
 initWebSocket(server);
 
