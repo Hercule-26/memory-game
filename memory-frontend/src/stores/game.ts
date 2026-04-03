@@ -1,13 +1,11 @@
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
-import { sessionStore } from './session';
 
 export const gameStore = defineStore('game', () => {
-  const userSession = sessionStore();
   const game = ref<any>(null);
   const gameId = ref<number | null>(null);
   const errorMessage = ref<string>("");
-  let playerIndex = ref<number | null>(null);
+  const playerIndex = ref<number | null>(null);
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   async function createGame(gameName: string) {
@@ -58,7 +56,7 @@ export const gameStore = defineStore('game', () => {
   }
 
   async function quitGame(player: any) {
-    if(gameId) {
+    if (gameId) {
       try {
         const response = await fetch(`${apiUrl}/game/exit/${gameId.value}/${player}`, {
           method: "GET",
@@ -98,7 +96,7 @@ export const gameStore = defineStore('game', () => {
       if (response.ok) {
         const { rowIndex, colIndex, card, nbCardRevealed } = data;
         game.value.board[rowIndex][colIndex] = card;
-        game.value.nbCardRevealed = nbCardRevealed;         
+        game.value.nbCardRevealed = nbCardRevealed;
       } else {
         throw new Error(data);
       }
@@ -167,7 +165,11 @@ export const gameStore = defineStore('game', () => {
   watch(gameId, async (newId) => {
     if (newId) {
       await fetchGameDetails(newId);
-      playerIndex.value = game.value.players.findIndex((p: { name: string; }) => p.name === userSession.user);
+      const { sessionStore } = await import('./session');
+      const userSession = sessionStore();
+      playerIndex.value = game.value.players.findIndex(
+        (p: { name: string }) => p.name === userSession.user
+      );
     }
   });
 

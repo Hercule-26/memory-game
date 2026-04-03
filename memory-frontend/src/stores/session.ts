@@ -1,9 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { gameStore } from './game';
 
 export const sessionStore = defineStore('session', () => {
-  const gameSesion = gameStore();
   const user = ref<string|null>(null);
   const errorMessage = ref<string>("");
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -32,7 +30,10 @@ export const sessionStore = defineStore('session', () => {
 
   async function logout() {
     try {
+      const { gameStore } = await import('./game');
+      const gameSesion = gameStore();
       await gameSesion.quitGame(user.value);
+
       const response = await fetch(`${apiUrl}/auth/logout`, {
         method: "POST",
         credentials: "include",
@@ -67,7 +68,10 @@ export const sessionStore = defineStore('session', () => {
 
       const data = await response.json();
       user.value = data.username || null;
-      if(data.gameId) {
+
+      if (data.gameId) {
+        const { gameStore } = await import('./game');
+        const gameSesion = gameStore();
         gameSesion.gameId = data.gameId;
       }
     } catch (err) {
