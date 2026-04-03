@@ -10,6 +10,13 @@ const app = express();
 app.set("trust proxy", 1);
 const PORT = process.env.PORT || 3000;
 
+app.use((req, res, next) => {
+  console.log("Protocol:", req.protocol);
+  console.log("X-Forwarded-Proto:", req.headers["x-forwarded-proto"]);
+  console.log("Secure:", req.secure);
+  next();
+});
+
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? [ ...process.env.ALLOWED_ORIGINS.split(","), "localhost" ]
   : ["localhost"];
@@ -41,7 +48,7 @@ app.use(
     store,
     cookie: {
       maxAge: 1000 * 60 * 5,
-      secure: true,
+      secure: false,
       httpOnly: true,
       sameSite: "none",
     },
