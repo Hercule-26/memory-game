@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
+import router from '@/router';
 
 export const gameStore = defineStore('game', () => {
   const game = ref<any>(null);
@@ -74,6 +75,7 @@ export const gameStore = defineStore('game', () => {
           game.value = null;
           gameId.value = null;
         }
+        router.push('/');
       } catch (err: any) {
         console.error("error while exiting the game : ", err.message);
       }
@@ -116,7 +118,6 @@ export const gameStore = defineStore('game', () => {
       } else if (data.askedToRestart) {
         game.value.askedToRestart = data.askedToRestart;
       }
-
     } catch (err: any) {
       console.error("error while asking to restart the game : ", err.message);
     }

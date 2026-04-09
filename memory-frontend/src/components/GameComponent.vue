@@ -1,9 +1,17 @@
 <script setup lang="ts">
+import router from '@/router';
 import { gameStore } from '@/stores/game';
+import { sessionStore } from '@/stores/session';
 
 const emits = defineEmits(['cardClic']);
 const gameSession: any = gameStore();
+const userSession: any = sessionStore();
 
+async function handleQuitGame() {
+  if (confirm("Are you sure you want to quit the game?")) {
+    await gameSession.quitGame(userSession.user);
+  }
+}
 </script>
 
 <template>
@@ -44,8 +52,8 @@ const gameSession: any = gameStore();
       <button @click="gameSession.askedToRestart" class="bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2 px-4 rounded shadow-md transition">
         Restart <span v-if="gameSession.game.askedToRestart.length > 0">{{ gameSession.game.askedToRestart.length }} / {{ gameSession.game.players.length }}</span>
       </button>
-      <button @click="gameSession.quitGame" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow-md transition ml-2">
-        🚪 Quit
+      <button @click="handleQuitGame" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow-md transition ml-2">
+        Quit game
       </button>
     </div>
   </div>
