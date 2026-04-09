@@ -37,12 +37,16 @@ const gameSession: any = gameStore();
         </div>
       </div>
     </div>
-
-
-
-
     <p class="text-white font-medium mb-6">
       ✅ Pairs found : {{ gameSession.game.matchedPairs }} / {{ gameSession.game.totalPairs }}
     </p>
+    <div>
+      <button @click="gameSession.askedToRestart" class="bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2 px-4 rounded shadow-md transition">
+        Restart <span v-if="gameSession.game.askedToRestart.length > 0">{{ gameSession.game.askedToRestart.length }} / {{ gameSession.game.players.length }}</span>
+      </button>
+      <button @click="gameSession.quitGame" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow-md transition ml-2">
+        🚪 Quit
+      </button>
+    </div>
   </div>
 </template>
