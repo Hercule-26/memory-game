@@ -31,7 +31,7 @@ router.get("/profile", (req, res) => {
       res.json({ username: req.session.username });
     }
   } else {
-    res.status(401).json({ error: "Not authentificated" });
+    res.status(200).json({ username: null });
   }
 });
 

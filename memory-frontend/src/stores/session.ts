@@ -5,7 +5,6 @@ export const sessionStore = defineStore('session', () => {
   const user = ref<string|null>(null);
   const errorMessage = ref<string>("");
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-  console.log("APIURL :", apiUrl);
   
   async function login(userName: string) {
     try {
@@ -60,10 +59,11 @@ export const sessionStore = defineStore('session', () => {
       if (response.status === 401) {
         user.value = null;
         return;
-      }
-
+      } 
+      
       if (!response.ok) {
-        throw new Error("Error while fetching user");
+        console.error("Unexpected error fetching user:", response.status);
+        return;
       }
 
       const data = await response.json();
@@ -75,7 +75,7 @@ export const sessionStore = defineStore('session', () => {
         gameSesion.gameId = data.gameId;
       }
     } catch (err) {
-      console.error(err);
+      console.error("Network error while fetching user:", err);
     }
   }
 
