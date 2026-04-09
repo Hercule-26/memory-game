@@ -47,7 +47,7 @@
         gameSession.game.board[rowIndex][colIndex] = card;
         gameSession.game.nbCardRevealed = nbCardRevealed;
 
-      }else if (data.type === "checkCardsMatch") {
+      } else if (data.type === "checkCardsMatch") {
         const { card1, card2, currentPlayerIndex, matchedPairs, gameIsOver, players, nbCardRevealed } = data;
 
         const x1 = parseInt(card1.x);
@@ -64,6 +64,10 @@
         gameSession.game.players = players;
         gameSession.game.nbCardRevealed = nbCardRevealed;
 
+      } else if (data.type === "askedToRestart") {
+        gameSession.game.askedToRestart = data.askedToRestart;
+      } else if (data.type === "gameRestarted") {
+        gameSession.game = data.newGame;
       }
     };
 

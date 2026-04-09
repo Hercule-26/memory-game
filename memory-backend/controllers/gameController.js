@@ -101,6 +101,34 @@ const playerDisconnect = (gameId, playerId) => {
   }
 }
 
+const restartGame = async (req, res) => {
+  const gameId = req.params.id; 
+  const username = req.session.username;
+  if (!username) {
+    return res.status(400).json("Missing username in your session. Make sure you are connected");
+  }
+  if (!gameExist(gameId)) {
+    return res.status(404).json("Game not found");
+  }
+  const game = games.get(gameId);
+  const restarted = game.restartGame(username);
+  if (restarted) {
+    const payload = {
+      type: "gameRestarted",
+      newGame: game
+    };
+    notifyOtherPlayer(game.getPlayers(), username, payload);
+    res.status(200).json({ newGame: game, gameRestarted: restarted });
+  } else {
+    const payload = {
+      type: "askedToRestart",
+      askedToRestart: game.askedToRestart
+    };
+    notifyOtherPlayer(game.getPlayers(), username, payload);
+    res.status(200).json({ askedToRestart: game.askedToRestart, gameRestarted: restarted });
+  }
+}
+
 const gameExist = (gameId) => {  
   return games.has(gameId);
 }
@@ -146,8 +174,6 @@ const revealCard = async (req, res) => {
 const checkCardsMatch = async (req, res) => {
   const gameId = req.session.gameId;
   const username = req.session.username;
-  console.log(`gameId : ${gameId}, game existe : ${gameExist(gameId)}`);
-
   if(!gameId) {
     return res.status(400).json("Missing gameId in your session. Make sure you are in a game");
   }
@@ -185,5 +211,6 @@ module.exports = {
     quitGame,
     playerDisconnect,
     revealCard,
-    checkCardsMatch
+    checkCardsMatch,
+    restartGame
 };

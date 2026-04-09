@@ -80,6 +80,48 @@ export const gameStore = defineStore('game', () => {
     }
   }
 
+  async function askedToRestart() {
+    if (!gameId.value) {
+      console.error("GameId is missing");
+      return;
+    }
+
+    const { sessionStore } = await import('./session');
+    const session = sessionStore();
+    const username = session.user;
+
+    if (!username) {
+      console.error("User not logged");
+      return;
+    }
+
+    if (game.value.askedToRestart.includes(username)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${apiUrl}/game/restart/${gameId.value}`, {
+        method: "POST",
+        credentials: "include"
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        errorMessage.value = data;
+      }
+
+      if (data.newGame) {
+        game.value = data.newGame;
+      } else if (data.askedToRestart) {
+        game.value.askedToRestart = data.askedToRestart;
+      }
+
+    } catch (err: any) {
+      console.error("error while asking to restart the game : ", err.message);
+    }
+  }
+
   async function revealCard(rowIndex: number, colIndex: number) {
     if (!gameId.value) {
       console.log("GameId is missing");
@@ -173,5 +215,5 @@ export const gameStore = defineStore('game', () => {
     }
   });
 
-  return { game, gameId, playerIndex, errorMessage, createGame, joinGame, quitGame, revealCard, checkCardsMatch };
+  return { game, gameId, playerIndex, errorMessage, createGame, joinGame, quitGame, revealCard, checkCardsMatch, askedToRestart };
 });

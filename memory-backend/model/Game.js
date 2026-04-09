@@ -8,6 +8,7 @@ class Game {
     this.nbCardRevealed = 0;
     this.revealedCards = [];
     this.players = [new Player(playerName)];
+    this.askedToRestart = [];
     this.currentPlayerIndex = 0;
     this.board = this.generateBoard();
     this.matchedPairs = 0;
@@ -37,8 +38,8 @@ class Game {
     return this.players;
   }
 
-  deletePlayer(playerId) {
-    const index = this.players.findIndex(player => player.name === playerId);
+  deletePlayer(playerName) {
+    const index = this.players.findIndex(player => player.name === playerName);
     
     if (index !== -1) {
       this.players.splice(index, 1);
@@ -83,7 +84,7 @@ class Game {
 
   checkMatch() {
     if(this.revealedCards.length < 2) return { errorMessage: "Need to have 2 revealed cards to see if they match each other" };
-    
+
     const card1 = this.revealedCards[0];
     const card2 = this.revealedCards[1];
 
@@ -124,6 +125,28 @@ class Game {
 
   isGameOver() {
     this.gameIsOver = this.matchedPairs === this.totalPairs;
+  }
+
+  restartGame(playerName) {
+    if (!this.askedToRestart.includes(playerName) && this.players.some(player => player.name === playerName)) {
+      this.askedToRestart.push(playerName);
+    }
+    if (this.askedToRestart.length === this.players.length) {
+      this.gameIsOver = false;
+      this.nbCardRevealed = 0;
+      this.revealedCards = [];
+      this.board = this.generateBoard();
+      this.matchedPairs = 0;
+      this.askedToRestart = [];
+      this.currentPlayerIndex = 0;
+      this.totalPairs = (this.board.length * this.board[0].length) / 2;
+      this.players.forEach(player => {
+        player.score = 0;
+      });
+      
+      return true;
+    }
+    return false;
   }
 }
 
