@@ -22,7 +22,7 @@ export const gameStore = defineStore('game', () => {
       const data = await response.json();
 
       if (!response.ok) {
-        errorMessage.value = data;
+        errorMessage.value = data.error;
         throw new Error(errorMessage.value);
       }
       game.value = data.game;

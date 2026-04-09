@@ -16,7 +16,6 @@
       await userSession.fetchUser();
     }
     const socketUrl = import.meta.env.VITE_SOCKET_URL || "ws://localhost:3000";
-    console.log("SocketUrl :", socketUrl)
     socket = new WebSocket(socketUrl);
 
     socket.onopen = () => {
@@ -42,7 +41,7 @@
           await gameSession.quitGame(userSession.user);
           router.push('/');
         }, 5000);
-
+        
       } else if(data.type === "cardRevealed") {
         const { rowIndex, colIndex, card, nbCardRevealed } = data;
         gameSession.game.board[rowIndex][colIndex] = card;

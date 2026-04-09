@@ -48,7 +48,7 @@ app.use(
       maxAge: 1000 * 60 * 5,
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      sameSite: "none",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
     },
   })
 );
@@ -66,7 +66,6 @@ const requireAuth = (req, res, next) => {
 app.use("/game", requireAuth, gameRoutes);
 
 const { initWebSocket } = require("./sockets/socket");
-const { log } = require("console");
 const server = http.createServer(app);
 initWebSocket(server);
 
