@@ -123,6 +123,9 @@
       <div class="text-lg font-semibold text-purple-900">
         Waiting for player to join...
       </div>
+      <button @click="gameSession.quitGame(userSession.user)" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 mt-3 rounded shadow-md transition">
+        Cancel
+      </button>
     </div>
     <template v-else>
       <GameComponent v-if="gameSession.game" @card-clic="handleCardClick" />
