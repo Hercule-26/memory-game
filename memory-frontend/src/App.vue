@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
 import HeaderView from './views/HeaderView.vue'
+
+document.title = "Memory Game";
 </script>
 
 <template>
