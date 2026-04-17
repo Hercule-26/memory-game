@@ -45,7 +45,7 @@ const router = createRouter({
 router.beforeEach(async (to, from) => {
   const store = sessionStore();
   const game = gameStore();
-
+  
   if (!store.user) {
     await store.fetchUser();
   }
