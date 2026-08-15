@@ -16,6 +16,18 @@ class Card {
   match() {
     this.isMatched = true;
   }
+
+  isVisible() {
+    return this.isRevealed || this.isMatched;
+  }
+
+  toPublic() {
+    return {
+      value: this.isVisible() ? this.value : null,
+      isRevealed: this.isRevealed,
+      isMatched: this.isMatched,
+    };
+  }
 }
 
 module.exports = Card;

@@ -1,7 +1,13 @@
-const { getSocketByUserId } = require("../sockets/socket");
+const { broadcastToUsers } = require('../sockets/socket');
 
-const Game = require("../model/Game");
+const Game = require('../model/Game');
+
 const games = new Map();
+const pendingResolves = new Map();
+
+const FLIP_BACK_MS = Number(process.env.FLIP_BACK_MS || 1500);
+const GAME_TTL_MS = Number(process.env.GAME_TTL_MS || 2 * 60 * 60 * 1000);
+const GAME_SWEEP_MS = 10 * 60 * 1000;
 
 function generateUniqueGameId() {
   let id;
@@ -11,206 +17,227 @@ function generateUniqueGameId() {
   return id;
 }
 
-const createGame = async (req, res) => {
-  try {
-    const playerUsername = req.session.username;
-    const gameId = generateUniqueGameId();
-    const gameName = req.body.gameName;
-    if (!gameName) {
-      return res.status(400).json("Game Name is missing");
-    }
-    const game = new Game(gameName, playerUsername);
-    games.set(gameId, game);
-    req.session.gameId = gameId;
-    res.status(201).json({
-      gameId: gameId,
-      game: game,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error while creating the game" });
+function getGameById(gameId) {
+  return gameId != null ? games.get(String(gameId)) || null : null;
+}
+
+function gameExist(gameId) {
+  return gameId != null && games.has(String(gameId));
+}
+
+function isUsernameInGame(username) {
+  for (const game of games.values()) {
+    if (game.hasPlayer(username)) return true;
   }
+  return false;
+}
+
+function broadcastState(gameId, game, extra = {}) {
+  broadcastToUsers(game.getPlayerNames(), {
+    type: 'gameState',
+    gameId: String(gameId),
+    game: game.getPublicState(),
+    ...extra,
+  });
+}
+
+function cancelResolve(gameId) {
+  const timer = pendingResolves.get(String(gameId));
+  if (timer) {
+    clearTimeout(timer);
+    pendingResolves.delete(String(gameId));
+  }
+}
+
+function scheduleResolve(gameId) {
+  const key = String(gameId);
+  cancelResolve(key);
+
+  const timer = setTimeout(() => {
+    pendingResolves.delete(key);
+    try {
+      const game = games.get(key);
+      if (!game) return;
+      const result = game.resolveMatch();
+      if (result.ok) broadcastState(key, game);
+    } catch (err) {
+      console.error('Error while resolving a turn:', err);
+    }
+  }, FLIP_BACK_MS);
+
+  pendingResolves.set(key, timer);
+}
+
+const createGame = async (req, res) => {
+  const playerUsername = req.session.username;
+  const gameName = typeof req.body.gameName === 'string' ? req.body.gameName.trim() : '';
+
+  if (!gameName) {
+    return res.status(400).json({ error: 'Game Name is missing' });
+  }
+  if (gameName.length > 30) {
+    return res.status(400).json({ error: 'Game name must be at most 30 characters' });
+  }
+  if (isUsernameInGame(playerUsername)) {
+    return res.status(409).json({ error: 'You are already in a game' });
+  }
+
+  const gameId = generateUniqueGameId();
+  const game = new Game(gameName, playerUsername);
+  games.set(gameId, game);
+  req.session.gameId = gameId;
+
+  res.status(201).json({ gameId, game: game.getPublicState() });
 };
 
 const getGame = async (req, res) => {
-  const gameId = req.params.id;
-
-  if (!games.has(gameId)) {
-    return res.status(404).json({ error: "Game not found" });
-  }
+  const gameId = String(req.params.id);
   const game = games.get(gameId);
-  res.status(200).json(game);
+
+  if (!game) {
+    return res.status(404).json({ error: 'Game not found' });
+  }
+  if (!game.hasPlayer(req.session.username)) {
+    return res.status(403).json({ error: 'You are not in this game' });
+  }
+
+  res.status(200).json({ gameId, game: game.getPublicState() });
 };
 
 const joinGame = async (req, res) => {
-  const gameId = req.params.id;
+  const gameId = String(req.params.id || '');
+  const username = req.session.username;
 
   if (!gameId) {
-    return res.status(400).json("Game Id is missing");
-  }
-  if(!gameExist(gameId)) {
-    return res.status(404).json("Game not found");
-  }
-  const game = games.get(gameId);
-  if(game.gameIsFull()) {
-    return res.status(400).json("Game is full");
+    return res.status(400).json({ error: 'Game Id is missing' });
   }
 
-  game.addPlayer(req.session.username);
-  req.session.gameId = gameId;
-  
-  const player1 = game.players[0];
-  const player2 = game.players[1];
-  const ws = getSocketByUserId(player1.name);
-  
-  if(!ws) {
-    console.error("Error with socker (socket not found)");
-    return res.status(500).json("Error with socker");
+  const game = games.get(gameId);
+  if (!game) {
+    return res.status(404).json({ error: 'Game not found' });
   }
-  
-  const payload = {
-    type: "playerJoined",
-    player: player2
-  };
-  ws.send(JSON.stringify(payload));
-  res.status(200).json({
-    game: game,
-  });
+
+  if (game.hasPlayer(username)) {
+    req.session.gameId = gameId;
+    return res.status(200).json({ gameId, game: game.getPublicState() });
+  }
+
+  if (isUsernameInGame(username)) {
+    return res.status(409).json({ error: 'You are already in another game' });
+  }
+
+  const result = game.addPlayer(username);
+  if (result.error) {
+    return res.status(400).json({ error: result.error });
+  }
+
+  req.session.gameId = gameId;
+  broadcastState(gameId, game, { reason: 'playerJoined', username });
+
+  res.status(200).json({ gameId, game: game.getPublicState() });
 };
 
 const quitGame = async (req, res) => {
+  const gameId = req.session.gameId;
+  const username = req.session.username;
+
   delete req.session.gameId;
-  const gameId = req.params.gameId;
-  const playerId = req.params.playerId;
-  playerDisconnect(gameId, playerId);
-  res.status(200).json("Player quit the game");
+  playerDisconnect(gameId, username);
+
+  res.status(200).json({ message: 'Player quit the game' });
 };
 
-const playerDisconnect = (gameId, playerId) => {
-  gameId = gameId.toString();
-  if(games.has(gameId)) {
-    const game = games.get(gameId);
-    const players = game.getPlayers();
+const playerDisconnect = (gameId, username) => {
+  if (gameId == null || !username) return;
 
-    game.deletePlayer(playerId);
-    notifyOtherPlayer(players, playerId, {type: "playerDisconnected"});
-    
-    if(players.length == 0) {
-      games.delete(gameId);
-    }
+  const key = String(gameId);
+  const game = games.get(key);
+  if (!game || !game.hasPlayer(username)) return;
+
+  cancelResolve(key);
+  game.deletePlayer(username);
+
+  if (game.players.length === 0) {
+    games.delete(key);
+    return;
   }
-}
+
+  broadcastToUsers(game.getPlayerNames(), {
+    type: 'playerDisconnected',
+    gameId: key,
+    username,
+    game: game.getPublicState(),
+  });
+};
 
 const restartGame = async (req, res) => {
-  const gameId = req.params.id; 
+  const gameId = req.session.gameId;
   const username = req.session.username;
-  if (!username) {
-    return res.status(400).json("Missing username in your session. Make sure you are connected");
-  }
-  if (!gameExist(gameId)) {
-    return res.status(404).json("Game not found");
-  }
-  const game = games.get(gameId);
-  const restarted = game.restartGame(username);
-  if (restarted) {
-    const payload = {
-      type: "gameRestarted",
-      newGame: game
-    };
-    notifyOtherPlayer(game.getPlayers(), username, payload);
-    res.status(200).json({ newGame: game, gameRestarted: restarted });
-  } else {
-    const payload = {
-      type: "askedToRestart",
-      askedToRestart: game.askedToRestart
-    };
-    notifyOtherPlayer(game.getPlayers(), username, payload);
-    res.status(200).json({ askedToRestart: game.askedToRestart, gameRestarted: restarted });
-  }
-}
 
-const gameExist = (gameId) => {  
-  return games.has(gameId);
-}
+  if (!gameId) {
+    return res.status(400).json({ error: 'Missing gameId in your session. Make sure you are in a game' });
+  }
+
+  const game = games.get(String(gameId));
+  if (!game) {
+    return res.status(404).json({ error: 'Game not found' });
+  }
+
+  const result = game.restartGame(username);
+  if (result.error) {
+    return res.status(400).json({ error: result.error });
+  }
+
+  if (result.restarted) cancelResolve(gameId);
+  broadcastState(gameId, game, { reason: result.restarted ? 'gameRestarted' : 'askedToRestart' });
+
+  res.status(200).json({ gameId: String(gameId), game: game.getPublicState(), gameRestarted: result.restarted });
+};
 
 const revealCard = async (req, res) => {
   const gameId = req.session.gameId;
   const username = req.session.username;
-  const rowIndex = req.params.rowIndex;
-  const colIndex = req.params.colIndex;
-  
-  if(!gameId) {
-    return res.status(400).json("Missing gameId in your session. Make sure you are in a game");
-  }
-  
-  if(!username) {
-    return res.status(400).json("Missing username in your session. Make sure you are connected");
+
+  if (!gameId) {
+    return res.status(400).json({ error: 'Missing gameId in your session. Make sure you are in a game' });
   }
 
-  if(!gameExist(gameId)) {
-    return res.status(404).json("Game does not exist.");
+  const game = games.get(String(gameId));
+  if (!game) {
+    return res.status(404).json({ error: 'Game does not exist.' });
   }
 
-  if (isNaN(rowIndex) || isNaN(colIndex)) {
-    return res.status(400).json("rowIndex and colIndex must be valid integers.");
-  }
-  
-  const game = games.get(gameId);
-
-  try {
-    const payload = game.revealCard(rowIndex, colIndex);
-    if(payload.errorMessage) {
-      return res.status(400).json(payload.errorMessage);
-    }
-    payload.type = "cardRevealed";
-    notifyOtherPlayer(game.getPlayers(), username, payload);
-    return res.status(200).json(payload);
-  } catch (err) {
-    console.error("Error while revealing card:", err);
-    return res.status(500).json("Internal server error.");
-  }
-}
-
-const checkCardsMatch = async (req, res) => {
-  const gameId = req.session.gameId;
-  const username = req.session.username;
-  if(!gameId) {
-    return res.status(400).json("Missing gameId in your session. Make sure you are in a game");
-  }
-  
-  if(!username) {
-    return res.status(400).json("Missing username in your session. Make sure you are connected");
+  const result = game.revealCard(username, req.params.rowIndex, req.params.colIndex);
+  if (result.error) {
+    return res.status(400).json({ error: result.error });
   }
 
-  const game = games.get(gameId);
-  const payload = game.checkMatch();
-  if(payload.errorMessage) {
-    return res.status(400).json(payload.errorMessage);
-  } else {
-    payload.type = "checkCardsMatch"
-    notifyOtherPlayer(game.getPlayers(), username, payload);
-    return res.status(200).json(payload);
-  }
-}
+  broadcastState(gameId, game, { reason: 'cardRevealed' });
+  if (result.isTurnComplete) scheduleResolve(gameId);
 
-function notifyOtherPlayer(players, currentPlayer, payload) {
-  const otherPlayer = players.find((p) => p.name !== currentPlayer);
-  if (otherPlayer) {
-    const playerSocket = getSocketByUserId(otherPlayer.name);
-    if (playerSocket) {
-      playerSocket.send(JSON.stringify(payload));
+  return res.status(200).json({ gameId: String(gameId), game: game.getPublicState() });
+};
+
+const sweeper = setInterval(() => {
+  const now = Date.now();
+  for (const [gameId, game] of games) {
+    if (game.players.length === 0 || now - game.updatedAt > GAME_TTL_MS) {
+      cancelResolve(gameId);
+      games.delete(gameId);
     }
   }
-}
+}, GAME_SWEEP_MS);
+sweeper.unref();
 
 module.exports = {
-    createGame, 
-    joinGame,
-    getGame,
-    gameExist,
-    quitGame,
-    playerDisconnect,
-    revealCard,
-    checkCardsMatch,
-    restartGame
+  createGame,
+  joinGame,
+  getGame,
+  gameExist,
+  getGameById,
+  isUsernameInGame,
+  quitGame,
+  playerDisconnect,
+  revealCard,
+  restartGame,
 };

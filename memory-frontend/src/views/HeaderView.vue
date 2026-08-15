@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import { onMounted } from 'vue';
   import { sessionStore } from '@/stores/session';
   import { gameStore } from '@/stores/game'
   import { useRouter } from 'vue-router';

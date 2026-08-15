@@ -4,20 +4,27 @@ import { gameStore } from "@/stores/game";
 import { useRouter } from "vue-router";
 
 const gameId = ref<number | null>(null);
-const errorMessage = ref<string | null>(null);
+const isSubmitting = ref(false);
 const game = gameStore();
 game.errorMessage = "";
 const router = useRouter();
 
 async function joinGame() {
+  if (isSubmitting.value) return;
+
   if (!gameId.value) {
     game.errorMessage = "The game id must not be blank";
-  } else {
-    errorMessage.value = null;
-    await game.joinGame(gameId.value);
-    if (game.game) {
-      router.push("/game");
+    return;
+  }
+
+  game.errorMessage = "";
+  isSubmitting.value = true;
+  try {
+    if (await game.joinGame(gameId.value)) {
+      await router.push("/game");
     }
+  } finally {
+    isSubmitting.value = false;
   }
 }
 </script>

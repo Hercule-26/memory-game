@@ -7,17 +7,29 @@ const gameName = ref<string>("");
 const game = gameStore();
 const router = useRouter();
 
+const isSubmitting = ref(false);
+
 async function createGame() {
-  if (gameName.value === "") {
+  if (isSubmitting.value) return;
+
+  const name = gameName.value.trim();
+  if (name === "") {
     game.errorMessage = "The name of the game must not be blank";
-  } else if (gameName.value.includes(" ")) {
-    game.errorMessage = "The name of the game must not contain spaces";
-  } else {
-    game.errorMessage = "";
-    await game.createGame(gameName.value);
-    if (game.game) {
-      router.push("/game");
+    return;
+  }
+  if (name.length > 30) {
+    game.errorMessage = "The name of the game must be at most 30 characters";
+    return;
+  }
+
+  game.errorMessage = "";
+  isSubmitting.value = true;
+  try {
+    if (await game.createGame(name)) {
+      await router.push("/game");
     }
+  } finally {
+    isSubmitting.value = false;
   }
 }
 

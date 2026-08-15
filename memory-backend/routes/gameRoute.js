@@ -1,19 +1,24 @@
 const express = require("express");
 const router = express.Router();
-const { createGame, joinGame, quitGame , getGame, revealCard, checkCardsMatch, restartGame } = require("../controllers/gameController")
+const {
+  createGame,
+  joinGame,
+  quitGame,
+  getGame,
+  revealCard,
+  restartGame,
+} = require("../controllers/gameController");
 
 router.post("/create", createGame);
 
-router.get("/join/:id", joinGame);
+router.post("/join/:id", joinGame);
 
-router.get("/exit/:gameId/:playerId", quitGame);
+router.post("/exit", quitGame);
 
-router.get("/reveal/:rowIndex/:colIndex", revealCard);
+router.post("/reveal/:rowIndex/:colIndex", revealCard);
 
-router.get("/match", checkCardsMatch);
+router.post("/restart", restartGame);
 
 router.get("/:id", getGame);
-
-router.post("/restart/:id", restartGame)
 
 module.exports = router;

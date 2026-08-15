@@ -7,15 +7,20 @@
        data-full-width-responsive="true"></ins>
 </template>
 
-<script>
-export default {
-  name: "AdBanner",
-  mounted() {
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (e) {
-      console.error(e);
-    }
+<script setup lang="ts">
+import { onMounted } from 'vue'
+
+declare global {
+  interface Window {
+    adsbygoogle?: unknown[]
   }
-};
+}
+
+onMounted(() => {
+  try {
+    (window.adsbygoogle = window.adsbygoogle || []).push({})
+  } catch (e) {
+    console.error(e)
+  }
+})
 </script>

@@ -7,15 +7,18 @@
   const router = useRouter();
 
   const username = ref<string>("");
-  const error = ref<string|null>(null);
+  const isSubmitting = ref(false);
 
   async function handleLogin() {
-    error.value = null;
+    if (isSubmitting.value) return;
+
+    isSubmitting.value = true;
     try {
-      await store.login(username.value);
-      router.push('/');
-    } catch (e) {
-      error.value = "Error while connection";
+      if (await store.login(username.value.trim())) {
+        await router.push('/');
+      }
+    } finally {
+      isSubmitting.value = false;
     }
   }
 </script>
