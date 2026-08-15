@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18 AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_SOCKET_URL=$VITE_SOCKET_URL
 
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY . .
 RUN npm run build
@@ -17,6 +17,7 @@ RUN npm run build
 # Serve with nginx
 FROM nginx:alpine
 
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
