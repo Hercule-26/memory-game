@@ -1,160 +1,149 @@
 # Multiplayer Memory Game
 
-This repository contains the source code for a real-time, two-player memory card game. The application is a monorepo consisting of a Vue.js frontend and a Node.js backend, communicating via REST API and WebSockets.
+A real-time, two-player memory card game. Create a lobby, share the 6-digit code, and race your
+opponent to find the most pairs.
+
+Vue 3 + Vite + Pinia on the front, Node.js + Express + `ws` on the back, REST for the actions and
+WebSocket for the live updates.
 
 ## Features
 
--   **Real-time Multiplayer:** Play against another person in real time.
--   **Game Lobbies:** Create a new game lobby or join an existing one with a unique 6-digit game ID.
--   **Turn-Based Gameplay:** Players take turns flipping two cards to find a match.
--   **Interactive Game Board:** A grid of cards with a clean and responsive UI.
--   **Score Tracking:** Points are awarded for each successful match.
--e   **Player Status:** See whose turn it is and the scores of both players.
--   **Automatic Reconnection/Disconnection Handling:** If a player disconnects, the game session is handled gracefully.
--   **Dockerized:** Comes with `docker-compose` for easy setup and deployment.
+- Real-time two-player games over WebSocket
+- Simple lobbies: create a game, share the 6-digit ID
+- Turn-based rules: match and you keep playing, miss and the turn passes
+- Live scores and active player, always in sync on both screens
+- Automatic reconnection: a refresh or a short network drop does not end your game
+- Server-authoritative state: every rule is enforced server-side and face-down cards never leave the server
+- Dockerized, with Traefik labels included
 
-## Project Structure
+## How it works
 
-The project is a monorepo with two main packages:
+The client never decides anything: it sends an intent (`reveal this card`), the server validates it,
+updates the state and broadcasts it to both players. When two cards are face up, a timer **on the
+server** compares them and pushes the result. That way a player who refreshes or loses their
+connection mid-turn cannot leave the board stuck.
 
--   `memory-backend/`: An Express.js server that handles game logic, player authentication, and WebSocket connections.
--   `memory-frontend/`: A Vue.js single-page application that serves as the game client.
+## Project structure
 
 ```
 .
 ├── docker-compose.yaml
-├── memory-backend/     # Node.js + Express.js Backend
-└── memory-frontend/    # Vue.js + Vite Frontend
+├── memory-backend/            # Node.js + Express + ws
+│   ├── controllers/           # Game orchestration, broadcasts, turn resolution
+│   ├── model/                 # Game, Player, Card (all the rules)
+│   ├── routes/                # /auth and /game endpoints
+│   ├── sockets/               # WebSocket registry, heartbeat, disconnections
+│   └── server.js              # App wiring, sessions, CORS, error handling
+└── memory-frontend/           # Vue 3 + Vite + Pinia + Tailwind
+    ├── nginx.conf             # SPA fallback + asset caching for the image
+    └── src/                   # components, views, stores, router
 ```
 
-## Tech Stack
+## Getting started
 
-### Backend
+Requires Node.js 20+ and npm, or Docker.
 
--   **Node.js**: JavaScript runtime environment.
--   **Express.js**: Web framework for Node.js.
--   **ws (WebSockets)**: Handles real-time, bidirectional communication between clients and the server.
--   **express-session**: Manages player sessions.
+### With Docker
 
-### Frontend
+Create a `.env` file at the root:
 
--   **Vue.js**: The progressive JavaScript framework for building the user interface.
--   **Vite**: Frontend tooling for development and bundling.
--   **Pinia**: State management library for Vue.js.
--   **Vue Router**: Official router for Vue.js.
--   **Tailwind CSS**: A utility-first CSS framework for styling.
+```bash
+SERVER_SECRET=change_me
 
-## Getting Started
+BACKEND_URL=localhost:3000
+PROJECT_TAG=memory      # optional if you are not using Traefik
+DOMAIN_URL=localhost    # optional if you are not using Traefik
 
-You can run the project using Docker (recommended) or by setting up the frontend and backend manually.
+FRONTEND_PORT=8080
+BACKEND_PORT=3000
+```
 
-### Prerequisites
+If you use Traefik, create the network first with `docker network create traefik-network`.
+Otherwise comment out the `networks` and `labels` sections in `docker-compose.yaml`.
 
--   Node.js (v18 or later)
--   npm
--   Docker and Docker Compose (optional)
+```sh
+docker compose up --build
+```
 
-### Option 1: Running with Docker (Recommended)
+Frontend on `http://localhost:8080`, API on `http://localhost:3000`.
 
-This project is configured to run with Docker and can be integrated with a Traefik reverse proxy.
+### Locally
 
-1.  **Configure Environment Variables:**
-    Create a `.env` file in the root of the project by copying the example below. This will be used by `docker-compose`.
+```sh
+cd memory-backend  && cp .env.example .env && npm install && npm run dev   # port 3000
+cd memory-frontend && cp .env.example .env && npm install && npm run dev   # port 5173
+```
 
-    ```bash
-    # .env
-    # Session Secret
-    SERVER_SECRET=secret_key (or blank for autogenerated one)
+To play against yourself, open the second client in a private window: each player needs their own
+session cookie.
 
-    BACKEND_URL=localhost:3000
-    PROJECT_TAG=memory     (optionnal if your not using traefik)
-    DOMAIN_URL=localhost   (optionnal if your not using traefik)
-
-    # Port mappings for docker-compose file
-    FRONTEND_PORT=8080
-    BACKEND_PORT=3000
-
-    ```
-
-2.  **Traefik Network:**
-    The `docker-compose.yaml` file is configured to use an external network named `traefik-network`. If you are using Traefik, ensure this network is created before proceeding:
-    ```sh
-    docker network create traefik-network
-    ```
-    If you are not using Traefik, you can comment out the `networks` and `labels` sections in the `docker-compose.yaml` file.
-
-3.  **Build and Run Containers:**
-    From the root directory, run:
-    ```sh
-    docker-compose up --build
-    ```
-
-4.  **Access the Application:**
-    -   Frontend: [http://localhost:8080](http://localhost:8080) (or your configured `DOMAIN_URL` if using Traefik).
-    -   Backend: [http://localhost:3000](http://localhost:3000).
-
-### Option 2: Manual Local Development
-
-#### Backend Server
-
-1.  Navigate to the backend directory:
-    ```sh
-    cd memory-backend
-    ```
-
-2.  Create a `.env` file from the example:
-    ```sh
-    cp .env.example .env
-    ```
-    You can modify the `SESSION_SECRET` in the `.env` file for better security.
-
-3.  Install dependencies and start the server:
-    ```sh
-    npm install
-    npm run dev
-    ```
-    The backend server will be running on `http://localhost:3000`.
-
-#### Frontend Client
-
-1.  Navigate to the frontend directory:
-    ```sh
-    cd memory-frontend
-    ```
-
-2.  Create a `.env` file from the example:
-    ```sh
-    cp .env.example .env
-    ```
-    The default values should work with the backend running on port 3000.
-
-3.  Install dependencies and start the development server:
-    ```sh
-    npm install
-    npm run dev
-    ```
-    The frontend will be available at the address shown in your terminal (usually `http://localhost:5173`).
+Frontend scripts: `npm run dev`, `npm run build`, `npm run type-check`, `npm run lint`.
 
 ## Configuration
 
-The application uses environment variables for configuration.
+**Root `.env`** (used by `docker-compose.yaml`): `SERVER_SECRET`, `BACKEND_URL`, `DOMAIN_URL`,
+`PROJECT_TAG`, `FRONTEND_PORT`, `BACKEND_PORT`.
 
-### Root (`docker-compose.yaml`)
+**`memory-frontend/.env`**: `VITE_API_URL` and `VITE_SOCKET_URL` (`ws://` or `wss://`).
 
--   `PROJECT_TAG`: A tag for Traefik routing rules.
--   `DOMAIN_URL`: The host for the frontend service.
--   `BACKEND_URL`: The host for the backend service.
--   `FRONTEND_PORT`: The external port to map to the frontend container.
--   `BACKEND_PORT`: The external port to map to the backend container.
--   `SERVER_SECRET`: The secret key for signing session IDs.
+**`memory-backend/.env`**
 
-### Backend (`memory-backend/.env`)
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `3000` | Port the Express server listens on |
+| `SESSION_SECRET` | random | Secret used to sign session IDs |
+| `ALLOWED_ORIGINS` | localhost origins | Comma-separated CORS allow-list |
+| `NODE_ENV` | `development` | `production` enables secure cross-site cookies |
+| `FLIP_BACK_MS` | `1500` | How long both cards stay face up before being compared |
+| `DISCONNECT_GRACE_MS` | `10000` | Grace period before a disconnected player is removed |
+| `GAME_TTL_MS` | `7200000` | Idle time after which an abandoned game is collected |
 
--   `PORT`: The port the Express server will listen on inside the container (defaults to 3000).
--   `SESSION_SECRET`: The secret key for signing session IDs.
--   `ALLOWED_ORIGINS`: A comma-separated list of allowed origins for CORS.
+In production the API and the frontend are served from different hosts, so the session cookie is
+issued with `SameSite=None; Secure`: both must be served over HTTPS.
 
-### Frontend (`memory-frontend/.env`)
+## API
 
--   `VITE_API_URL`: The base URL for the backend REST API.
--   `VITE_SOCKET_URL`: The URL for the backend WebSocket server.
+All `/game` routes require an authenticated session. Errors always answer with `{ "error": "..." }`.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/auth/login` | Claims a username (`{ username }`) and opens a session |
+| `GET` | `/auth/profile` | Current username and game, or `{ username: null }` |
+| `POST` | `/auth/logout` | Leaves the current game and destroys the session |
+| `POST` | `/game/create` | Creates a game (`{ gameName }`), returns the 6-digit `gameId` |
+| `POST` | `/game/join/:id` | Joins an existing game |
+| `GET` | `/game/:id` | Current state of a game you belong to |
+| `POST` | `/game/reveal/:row/:col` | Turns a card face up |
+| `POST` | `/game/restart` | Votes to restart; both players must agree |
+| `POST` | `/game/exit` | Leaves the game |
+| `GET` | `/health` | Liveness probe |
+
+Game responses share the same shape: `{ gameId, game }`, where `game` holds `partyName`, `players`,
+`board`, `currentPlayerIndex`, `matchedPairs`, `totalPairs`, `nbCardRevealed`, `askedToRestart`,
+`gameIsOver` and `isFull`. Hidden cards are serialized as `{ value: null, isRevealed, isMatched }`.
+
+## WebSocket
+
+The handshake reuses the HTTP session cookie; an unauthenticated connection is rejected with `401`.
+Once connected the client registers with
+`{ "type": "registerSocket", "username": "alice", "gameId": "482913" }`, then receives:
+
+- `gameState` — `{ gameId, game, reason? }`, the authoritative state after every change
+- `playerDisconnected` — `{ gameId, username, game }`, the opponent left or timed out
+- `error` — `{ code, error }`, either `GAME_NOT_FOUND` or `FORBIDDEN`
+
+The server pings every 30 seconds and drops sockets that stop answering. On the client, a lost
+connection triggers a reconnection with exponential backoff and resyncs the game on registration.
+
+## Design notes
+
+- **Server-authoritative.** Turn order, card bounds, already-revealed cards and end-of-game are
+  validated in `model/Game.js`. The client checks only save a round trip.
+- **No peeking.** The API only exposes the value of a card that is face up, so the board cannot be
+  read from the network tab.
+- **Fair shuffle.** Fisher-Yates, not `sort(() => Math.random() - 0.5)`, which is not uniform.
+- **Session-scoped actions.** Quitting, revealing and restarting act on the game stored in your own
+  session, so nobody can act on a game they did not join.
+- **Bounded memory.** Games live in memory; abandoned games and expired sessions are collected
+  periodically. Restarting the server clears every running game, a deliberate trade-off for a small
+  stateless deployment.
